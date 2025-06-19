@@ -160,8 +160,6 @@ public sealed partial class MiniVolumeWindow : Window
                 var newY = currentPos.Y + (int)deltaY;
 
                 this.AppWindow.Move(new Windows.Graphics.PointInt32(newX, newY));
-
-                System.Diagnostics.Debug.WriteLine($"Dragging window to: ({newX}, {newY})");
             }
         }
     }
