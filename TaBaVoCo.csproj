@@ -23,6 +23,8 @@
         <PublishProfile>win-$(Platform).pubxml</PublishProfile>
         <RuntimeIdentifiers Condition="$([MSBuild]::GetTargetFrameworkVersion('$(TargetFramework)')) >= 8">win-x86;win-x64;win-arm64</RuntimeIdentifiers>
         <RuntimeIdentifiers Condition="$([MSBuild]::GetTargetFrameworkVersion('$(TargetFramework)')) &lt; 8">win10-x86;win10-x64;win10-arm64</RuntimeIdentifiers>
+        <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+        <EnableDefaultPageItems>false</EnableDefaultPageItems>
     </PropertyGroup>
 
     <ItemGroup>
@@ -33,6 +35,16 @@
         <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
         <Content Include="Assets\StoreLogo.png" />
         <Content Include="Assets\Wide310x150Logo.scale-200.png" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Include="src\**\*.cs" />
+        <ApplicationDefinition Include="src\App.xaml">
+            <Generator>MSBuild:Compile</Generator>
+        </ApplicationDefinition>
+        <Page Include="src\**\*.xaml" Exclude="src\App.xaml">
+            <Generator>MSBuild:Compile</Generator>
+        </Page>
     </ItemGroup>
 
     <ItemGroup>
