@@ -3,7 +3,8 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     
-    <Grid Background="#E0000000" Padding="8" RightTapped="OnRightTapped">
+    <Grid Background="#E0000000" Padding="8" RightTapped="OnRightTapped" 
+          PointerPressed="OnPointerPressed" PointerMoved="OnPointerMoved" PointerReleased="OnPointerReleased">
         <Grid.ContextFlyout>
             <MenuFlyout>
                 <MenuFlyoutItem Text="Exit" Click="OnExitClicked"/>
