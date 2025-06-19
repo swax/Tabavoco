@@ -34,6 +34,8 @@ public sealed partial class MiniVolumeWindow : Window
     private const int WS_SYSMENU = 0x80000;
     private const int WS_EX_TOPMOST = 0x00000008;
 
+    private const int WS_EX_TOOLWINDOW = 0x00000080;
+    private const int WS_EX_APPWINDOW = 0x00040000;
     private bool _isDragging = false;
     private Point _lastPointerPosition;
     private DispatcherTimer _topmostTimer = new DispatcherTimer();
@@ -67,6 +69,9 @@ public sealed partial class MiniVolumeWindow : Window
         // Set window size to 300px width
         this.AppWindow.Resize(new Windows.Graphics.SizeInt32(300, 50));
         
+        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+        var exStyle = GetWindowLong(hwnd, GWL_EXSTYLE);
+        SetWindowLong(hwnd, GWL_EXSTYLE, (exStyle | WS_EX_TOOLWINDOW) & ~WS_EX_APPWINDOW);
         // Start timer to continuously enforce topmost status
         StartTopmostTimer();
     }
@@ -143,7 +148,7 @@ public sealed partial class MiniVolumeWindow : Window
         // Dual approach: Extended style is more persistent, SetWindowPos has immediate effect
         // Standard WinUI 3 IsAlwaysOnTop doesn't guarantee positioning above taskbar
         var exStyle = GetWindowLong(hwnd, GWL_EXSTYLE);
-        SetWindowLong(hwnd, GWL_EXSTYLE, exStyle | WS_EX_TOPMOST);
+        SetWindowLong(hwnd, GWL_EXSTYLE, (exStyle | WS_EX_TOPMOST | WS_EX_TOOLWINDOW) & ~WS_EX_APPWINDOW);
         
         SetWindowPos(hwnd, (IntPtr)HWND_TOPMOST, 0, 0, 0, 0, 
                      SWP_NOACTIVATE | SWP_NOSIZE | SWP_NOMOVE);
