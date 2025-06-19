@@ -1,191 +1,111 @@
 using System;
-using System.Runtime.InteropServices;
 
 namespace Tabavoco;
 
 /// <summary>
-/// Manages system volume using Windows Core Audio API
+/// High-level volume management interface that maintains cached state and uses AudioDeviceManager for COM interactions
+/// Getting events for volume changes is complicated apparently, so this class provides a simple API for volume and mute management.
+/// It caches the current volume and mute state, refreshing from the system on a one second iterval.
 /// </summary>
 public static class VolumeManager
 {
-    #region COM Interfaces
-    [ComImport]
-    [Guid("BCDE0395-E52F-467C-8E3D-C4579291692E")]
-    private class MMDeviceEnumerator
-    {
-    }
-
-    [Guid("A95664D2-9614-4F35-A746-DE8DB63617E6"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    private interface IMMDeviceEnumerator
-    {
-        int NotImpl1();
-        [PreserveSig]
-        int GetDefaultAudioEndpoint(DataFlow dataFlow, Role role, out IMMDevice ppDevice);
-    }
-
-    [Guid("D666063F-1587-4E43-81F1-B948E807363F"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    private interface IMMDevice
-    {
-        [PreserveSig]
-        int Activate(ref Guid iid, int dwClsCtx, IntPtr pActivationParams, [MarshalAs(UnmanagedType.IUnknown)] out object ppInterface);
-    }
-
-    [Guid("5CDF2C82-841E-4546-9722-0CF74078229A"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    private interface IAudioEndpointVolume
-    {
-        [PreserveSig]
-        int NotImpl1();
-        [PreserveSig]
-        int NotImpl2();
-        [PreserveSig]
-        int GetChannelCount(out int pnChannelCount);
-        [PreserveSig]
-        int SetMasterVolumeLevel(float fLevelDB, ref Guid pguidEventContext);
-        [PreserveSig]
-        int SetMasterVolumeLevelScalar(float fLevel, ref Guid pguidEventContext);
-        [PreserveSig]
-        int GetMasterVolumeLevel(out float pfLevelDB);
-        [PreserveSig]
-        int GetMasterVolumeLevelScalar(out float pfLevel);
-        [PreserveSig]
-        int SetChannelVolumeLevel(int nChannel, float fLevelDB, ref Guid pguidEventContext);
-        [PreserveSig]
-        int SetChannelVolumeLevelScalar(int nChannel, float fLevel, ref Guid pguidEventContext);
-        [PreserveSig]
-        int GetChannelVolumeLevel(int nChannel, out float pfLevelDB);
-        [PreserveSig]
-        int GetChannelVolumeLevelScalar(int nChannel, out float pfLevel);
-        [PreserveSig]
-        int SetMute([MarshalAs(UnmanagedType.Bool)] Boolean bMute, ref Guid pguidEventContext);
-        [PreserveSig]
-        int GetMute(out bool pbMute);
-    }
-    #endregion
-
-    #region Enums
-    private enum DataFlow
-    {
-        Render,
-        Capture,
-        All
-    }
-
-    private enum Role
-    {
-        Console,
-        Multimedia,
-        Communications
-    }
-    #endregion
-
-    private static IAudioEndpointVolume? _volumeEndpoint;
-    private static readonly Guid IID_IAudioEndpointVolume = new Guid("5CDF2C82-841E-4546-9722-0CF74078229A");
+    private static readonly AudioDeviceManager _audioDeviceManager = new AudioDeviceManager();
+    
+    // Cache for volume, mute state, and endpoint
+    private static int? _cachedVolume = null;
+    private static bool? _cachedMute = null;
+    private static AudioDeviceManager.IAudioEndpointVolume? _cachedEndpoint = null;
+    private static DateTime _lastRefresh = DateTime.MinValue;
 
     /// <summary>
-    /// Initializes the volume manager by getting the default audio endpoint
-    /// </summary>
-    private static void Initialize()
-    {
-        if (_volumeEndpoint != null) return;
-
-        try
-        {
-            var deviceEnumerator = new MMDeviceEnumerator() as IMMDeviceEnumerator;
-            if (deviceEnumerator?.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia, out IMMDevice device) == 0)
-            {
-                var guid = IID_IAudioEndpointVolume;
-                if (device?.Activate(ref guid, 0, IntPtr.Zero, out object o) == 0)
-                {
-                    _volumeEndpoint = o as IAudioEndpointVolume;
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Failed to initialize volume endpoint: {ex.Message}");
-        }
-    }
-
-    /// <summary>
-    /// Gets the current system volume as a percentage (0-100)
+    /// Gets the current cached volume as a percentage (0-100)
     /// </summary>
     public static int GetCurrentVolume()
     {
-        Initialize();
-        
-        if (_volumeEndpoint == null) return 50; // Default fallback
-        
-        try
+        if (_cachedVolume.HasValue)
         {
-            _volumeEndpoint.GetMasterVolumeLevelScalar(out float level);
-            return (int)(level * 100);
+            return _cachedVolume.Value;
         }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Failed to get volume: {ex.Message}");
-            return 50; // Default fallback
-        }
+        
+        // If no cached value, refresh from system
+        RefreshFromSystem();
+        return _cachedVolume ?? 0;
     }
 
     /// <summary>
-    /// Sets the system volume to the specified percentage (0-100)
+    /// Sets the system volume to the specified percentage (0-100) and updates cache
     /// </summary>
     public static void SetVolume(int volumePercent)
     {
-        Initialize();
+        EnsureEndpointCached();
+        if (_cachedEndpoint == null) return;
         
-        if (_volumeEndpoint == null) return;
+        var level = Math.Max(0, Math.Min(100, volumePercent)) / 100.0f;
+        _audioDeviceManager.SetMasterVolumeScalar(_cachedEndpoint, level);
         
-        try
-        {
-            var level = Math.Max(0, Math.Min(100, volumePercent)) / 100.0f;
-            var guid = Guid.Empty;
-            _volumeEndpoint.SetMasterVolumeLevelScalar(level, ref guid);
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Failed to set volume: {ex.Message}");
-        }
+        // Update cached value immediately
+        _cachedVolume = volumePercent;
     }
 
     /// <summary>
-    /// Gets whether the system is currently muted
+    /// Gets whether the system is currently muted from cache
     /// </summary>
     public static bool IsMuted()
     {
-        Initialize();
-        
-        if (_volumeEndpoint == null) return false;
-        
-        try
+        if (_cachedMute.HasValue)
         {
-            _volumeEndpoint.GetMute(out bool isMuted);
-            return isMuted;
+            return _cachedMute.Value;
         }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Failed to get mute status: {ex.Message}");
-            return false;
-        }
+        
+        // If no cached value, refresh from system
+        RefreshFromSystem();
+        return _cachedMute ?? false; // Default fallback
     }
 
     /// <summary>
-    /// Sets the system mute state
+    /// Sets the system mute state and updates cache
     /// </summary>
     public static void SetMute(bool mute)
     {
-        Initialize();
+        EnsureEndpointCached();
+        if (_cachedEndpoint == null) return;
         
-        if (_volumeEndpoint == null) return;
+        _audioDeviceManager.SetMuteState(_cachedEndpoint, mute);
         
-        try
+        // Update cached value immediately
+        _cachedMute = mute;
+    }
+
+    /// <summary>
+    /// Refreshes cached values from the system - should be called periodically
+    /// </summary>
+    public static void RefreshFromSystem()
+    {
+        _cachedEndpoint = _audioDeviceManager.GetCurrentVolumeEndpoint();
+        if (_cachedEndpoint == null) 
         {
-            var guid = Guid.Empty;
-            _volumeEndpoint.SetMute(mute, ref guid);
+            _cachedVolume = null;
+            _cachedMute = null;
+            return;
         }
-        catch (Exception ex)
+        
+        var level = _audioDeviceManager.GetMasterVolumeScalar(_cachedEndpoint);
+        _cachedVolume = level.HasValue ? (int)(level.Value * 100) : null;
+        
+        var muteState = _audioDeviceManager.GetMuteState(_cachedEndpoint);
+        _cachedMute = muteState ?? false;
+        
+        _lastRefresh = DateTime.Now;
+    }
+
+    /// <summary>
+    /// Ensures endpoint is cached, refreshing if necessary
+    /// </summary>
+    private static void EnsureEndpointCached()
+    {
+        if (_cachedEndpoint == null)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to set mute: {ex.Message}");
+            RefreshFromSystem();
         }
     }
 }

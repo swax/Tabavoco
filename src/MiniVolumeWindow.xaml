@@ -19,7 +19,9 @@
                     FontSize="16" 
                     Foreground="White"
                     VerticalAlignment="Center"
-                    Click="OnMuteButtonClicked"/>
+                    Click="OnMuteButtonClicked"
+                    PointerPressed="OnMuteButtonPointerPressed"
+                    PointerReleased="OnMuteButtonPointerReleased"/>
             <Slider x:Name="VolumeSlider"
                     Width="170"
                     Minimum="0"
@@ -27,7 +29,11 @@
                     Padding="8,0" 
                     Value="0"
                     VerticalAlignment="Center"
-                    ValueChanged="OnVolumeChanged"/>
+                    ValueChanged="OnVolumeChanged"
+                    PointerPressed="OnVolumeSliderPointerPressed"
+                    PointerReleased="OnVolumeSliderPointerReleased"
+                    PointerEntered="OnVolumeSliderPointerEntered"
+                    PointerExited="OnVolumeSliderPointerExited"/>
         </StackPanel>
     </Grid>
 </Window>

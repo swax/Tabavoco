@@ -12,13 +12,14 @@ public sealed partial class MiniVolumeWindow : Window
     private bool _isDragging = false;
     private Point _lastPointerPosition;
     private DispatcherTimer _topmostTimer = new DispatcherTimer();
+    private DispatcherTimer _volumeSyncTimer = new DispatcherTimer();
+    private bool _isUserInteracting = false;
 
     public MiniVolumeWindow()
     {
         InitializeComponent();
         SetupWindow();
-        InitializeVolumeSlider();
-        InitializeMuteButton();
+        StartVolumeSyncTimer();
         this.Activated += OnWindowActivated;
     }
 
@@ -48,25 +49,6 @@ public sealed partial class MiniVolumeWindow : Window
         StartTopmostTimer();
     }
 
-    private void InitializeVolumeSlider()
-    {
-        // Temporarily remove event handler to prevent setting system volume during initialization
-        VolumeSlider.ValueChanged -= OnVolumeChanged;
-        
-        // Set initial volume from current system volume
-        var currentVolume = VolumeManager.GetCurrentVolume();
-        VolumeSlider.Value = currentVolume;
-        
-        // Re-attach event handler
-        VolumeSlider.ValueChanged += OnVolumeChanged;
-    }
-
-    private void InitializeMuteButton()
-    {
-        // Set initial mute button state based on current system mute status
-        UpdateMuteButtonIcon();
-    }
-
     private void UpdateMuteButtonIcon()
     {
         var isMuted = VolumeManager.IsMuted();
@@ -79,6 +61,30 @@ public sealed partial class MiniVolumeWindow : Window
         VolumeManager.SetVolume(volume);
     }
 
+    private void OnVolumeSliderPointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        // User started interacting with volume slider
+        _isUserInteracting = true;
+    }
+
+    private void OnVolumeSliderPointerReleased(object sender, PointerRoutedEventArgs e)
+    {
+        // User finished interacting with volume slider
+        _isUserInteracting = false;
+    }
+
+    private void OnVolumeSliderPointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+        // Disable sync while hovering over slider
+        _isUserInteracting = true;
+    }
+
+    private void OnVolumeSliderPointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        // Re-enable sync when no longer hovering
+        _isUserInteracting = false;
+    }
+
     private void OnMuteButtonClicked(object sender, RoutedEventArgs e)
     {
         // Toggle mute state
@@ -87,6 +93,18 @@ public sealed partial class MiniVolumeWindow : Window
         
         // Update button icon to reflect new state
         UpdateMuteButtonIcon();
+    }
+
+    private void OnMuteButtonPointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        // User started interacting with mute button
+        _isUserInteracting = true;
+    }
+
+    private void OnMuteButtonPointerReleased(object sender, PointerRoutedEventArgs e)
+    {
+        // User finished interacting with mute button
+        _isUserInteracting = false;
     }
 
     private void OnRightTapped(object sender, RightTappedRoutedEventArgs e)
@@ -131,6 +149,51 @@ public sealed partial class MiniVolumeWindow : Window
         _topmostTimer.Interval = TimeSpan.FromMilliseconds(500); // Check every 500ms
         _topmostTimer.Tick += (s, e) => Win32WindowManager.ApplyTopmostStyle(this);
         _topmostTimer.Start();
+    }
+
+    private void StartVolumeSyncTimer()
+    {
+        // Timer to periodically sync volume and mute state when user isn't interacting
+        _volumeSyncTimer = new DispatcherTimer();
+        _volumeSyncTimer.Interval = TimeSpan.FromSeconds(1); // Check every second
+        _volumeSyncTimer.Tick += OnVolumeSyncTimerTick;
+        _volumeSyncTimer.Start();
+    }
+
+    private void OnVolumeSyncTimerTick(object? sender, object e)
+    {
+        // Only sync if user is not actively interacting with controls
+        if (!_isUserInteracting)
+        {
+            SyncVolumeAndMuteState();
+        }
+    }
+
+    private void SyncVolumeAndMuteState()
+    {
+        // Refresh cached state from system
+        VolumeManager.RefreshFromSystem();
+        
+        // Get current cached volume and mute state
+        var currentVolume = VolumeManager.GetCurrentVolume();
+        var isMuted = VolumeManager.IsMuted();
+        
+        // Update slider if it doesn't match current system volume
+        if (Math.Abs(VolumeSlider.Value - currentVolume) > 0.5)
+        {
+            // Temporarily remove event handler to prevent feedback loop
+            VolumeSlider.ValueChanged -= OnVolumeChanged;
+            VolumeSlider.Value = currentVolume;
+            VolumeSlider.ValueChanged += OnVolumeChanged;
+        }
+        
+        // Update mute button if state has changed
+        var currentButtonText = MuteButton.Content?.ToString();
+        var expectedButtonText = isMuted ? "🔇" : "🔊";
+        if (currentButtonText != expectedButtonText)
+        {
+            MuteButton.Content = expectedButtonText;
+        }
     }
 
     private void OnPointerPressed(object sender, PointerRoutedEventArgs e)
