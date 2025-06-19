@@ -2,6 +2,8 @@
 
 A lightweight WinUI 3 volume control application that provides persistent, easily accessible system volume control from the bottom left corner of your screen.
 
+![Screenshot](Assets/screenshot.png)
+
 ## Features
 
 - **Always-on-top volume control** - Stays above all windows including taskbar
