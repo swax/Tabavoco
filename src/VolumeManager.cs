@@ -7,20 +7,21 @@ namespace Tabavoco;
 /// Getting events for volume changes is complicated apparently, so this class provides a simple API for volume and mute management.
 /// It caches the current volume and mute state, refreshing from the system on a one second iterval.
 /// </summary>
-public static class VolumeManager
+public class VolumeManager : IDisposable
 {
-    private static readonly AudioDeviceManager _audioDeviceManager = new AudioDeviceManager();
+    private readonly AudioDeviceManager _audioDeviceManager = new AudioDeviceManager();
     
     // Cache for volume, mute state, and endpoint
-    private static int? _cachedVolume = null;
-    private static bool? _cachedMute = null;
-    private static AudioDeviceManager.IAudioEndpointVolume? _cachedEndpoint = null;
-    private static DateTime _lastRefresh = DateTime.MinValue;
+    private int? _cachedVolume = null;
+    private bool? _cachedMute = null;
+    private AudioDeviceManager.IAudioEndpointVolume? _cachedEndpoint = null;
+    private DateTime _lastRefresh = DateTime.MinValue;
+    
 
     /// <summary>
     /// Gets the current cached volume as a percentage (0-100)
     /// </summary>
-    public static int GetCurrentVolume()
+    public int GetCurrentVolume()
     {
         if (_cachedVolume.HasValue)
         {
@@ -35,7 +36,7 @@ public static class VolumeManager
     /// <summary>
     /// Sets the system volume to the specified percentage (0-100) and updates cache
     /// </summary>
-    public static void SetVolume(int volumePercent)
+    public void SetVolume(int volumePercent)
     {
         EnsureEndpointCached();
         if (_cachedEndpoint == null) return;
@@ -50,7 +51,7 @@ public static class VolumeManager
     /// <summary>
     /// Gets whether the system is currently muted from cache
     /// </summary>
-    public static bool IsMuted()
+    public bool IsMuted()
     {
         if (_cachedMute.HasValue)
         {
@@ -65,7 +66,7 @@ public static class VolumeManager
     /// <summary>
     /// Sets the system mute state and updates cache
     /// </summary>
-    public static void SetMute(bool mute)
+    public void SetMute(bool mute)
     {
         EnsureEndpointCached();
         if (_cachedEndpoint == null) return;
@@ -79,7 +80,7 @@ public static class VolumeManager
     /// <summary>
     /// Refreshes cached values from the system - should be called periodically
     /// </summary>
-    public static void RefreshFromSystem()
+    public void RefreshFromSystem()
     {
         _cachedEndpoint = _audioDeviceManager.GetCurrentVolumeEndpoint();
         if (_cachedEndpoint == null) 
@@ -101,11 +102,19 @@ public static class VolumeManager
     /// <summary>
     /// Ensures endpoint is cached, refreshing if necessary
     /// </summary>
-    private static void EnsureEndpointCached()
+    private void EnsureEndpointCached()
     {
         if (_cachedEndpoint == null)
         {
             RefreshFromSystem();
         }
+    }
+
+    /// <summary>
+    /// Disposes the AudioDeviceManager
+    /// </summary>
+    public void Dispose()
+    {
+        _audioDeviceManager?.Dispose();
     }
 }
