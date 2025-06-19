@@ -3,39 +3,12 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
 using System;
-using System.Runtime.InteropServices;
 using Windows.Foundation;
 
 namespace Tabavoco;
 
 public sealed partial class MiniVolumeWindow : Window
 {
-    [DllImport("user32.dll")]
-    private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
-
-    [DllImport("user32.dll")]
-    private static extern IntPtr GetSystemMetrics(int nIndex);
-
-    [DllImport("user32.dll")]
-    private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
-
-    [DllImport("user32.dll")]
-    private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
-
-    private const int HWND_TOPMOST = -1;
-    private const uint SWP_NOACTIVATE = 0x0010;
-    private const uint SWP_SHOWWINDOW = 0x0040;
-    private const uint SWP_NOMOVE = 0x0002;
-    private const uint SWP_NOSIZE = 0x0001;
-    private const int SM_CXSCREEN = 0;
-    private const int SM_CYSCREEN = 1;
-    private const int GWL_STYLE = -16;
-    private const int GWL_EXSTYLE = -20;
-    private const int WS_SYSMENU = 0x80000;
-    private const int WS_EX_TOPMOST = 0x00000008;
-
-    private const int WS_EX_TOOLWINDOW = 0x00000080;
-    private const int WS_EX_APPWINDOW = 0x00040000;
     private bool _isDragging = false;
     private Point _lastPointerPosition;
     private DispatcherTimer _topmostTimer = new DispatcherTimer();
@@ -49,9 +22,6 @@ public sealed partial class MiniVolumeWindow : Window
 
     private void SetupWindow()
     {
-        // Use CompactOverlay presenter for truly borderless window
-        //this.AppWindow.SetPresenter(Microsoft.UI.Windowing.AppWindowPresenterKind.CompactOverlay);
-        
         // Remove title bar completely in WinUI 3
         this.ExtendsContentIntoTitleBar = true;
         this.SetTitleBar(null);
@@ -69,9 +39,9 @@ public sealed partial class MiniVolumeWindow : Window
         // Set window size to 300px width
         this.AppWindow.Resize(new Windows.Graphics.SizeInt32(300, 50));
         
-        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
-        var exStyle = GetWindowLong(hwnd, GWL_EXSTYLE);
-        SetWindowLong(hwnd, GWL_EXSTYLE, (exStyle | WS_EX_TOOLWINDOW) & ~WS_EX_APPWINDOW);
+        // Configure as tool window to hide from taskbar
+        Win32WindowManager.ConfigureAsToolWindow(this);
+        
         // Start timer to continuously enforce topmost status
         StartTopmostTimer();
     }
@@ -120,15 +90,11 @@ public sealed partial class MiniVolumeWindow : Window
 
     private void SetInitialWindowPosition()
     {
-        var screenHeight = (int)GetSystemMetrics(SM_CYSCREEN);
-        var x = 10;
-        var y = screenHeight - 50; // Moved up from -100 to -150 for better visibility
-        
-        System.Diagnostics.Debug.WriteLine($"Repositioning window - Screen height: {screenHeight}, Moving to: ({x}, {y})");
-        this.AppWindow.Move(new Windows.Graphics.PointInt32(x, y));
+        // Position window at bottom left of screen
+        Win32WindowManager.PositionAtBottomLeft(this, 10, 50);
         
         // Apply extended topmost style
-        ApplyTopmostStyle();
+        Win32WindowManager.ApplyTopmostStyle(this);
     }
 
     private void StartTopmostTimer()
@@ -137,21 +103,8 @@ public sealed partial class MiniVolumeWindow : Window
         // actively changes our app's z-index when the taskbar is clicked
         _topmostTimer = new DispatcherTimer();
         _topmostTimer.Interval = TimeSpan.FromMilliseconds(500); // Check every 500ms
-        _topmostTimer.Tick += (s, e) => ApplyTopmostStyle();
+        _topmostTimer.Tick += (s, e) => Win32WindowManager.ApplyTopmostStyle(this);
         _topmostTimer.Start();
-    }
-
-    private void ApplyTopmostStyle()
-    {
-        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
-        
-        // Dual approach: Extended style is more persistent, SetWindowPos has immediate effect
-        // Standard WinUI 3 IsAlwaysOnTop doesn't guarantee positioning above taskbar
-        var exStyle = GetWindowLong(hwnd, GWL_EXSTYLE);
-        SetWindowLong(hwnd, GWL_EXSTYLE, (exStyle | WS_EX_TOPMOST | WS_EX_TOOLWINDOW) & ~WS_EX_APPWINDOW);
-        
-        SetWindowPos(hwnd, (IntPtr)HWND_TOPMOST, 0, 0, 0, 0, 
-                     SWP_NOACTIVATE | SWP_NOSIZE | SWP_NOMOVE);
     }
 
     private void OnPointerPressed(object sender, PointerRoutedEventArgs e)
