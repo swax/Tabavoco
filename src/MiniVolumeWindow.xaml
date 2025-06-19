@@ -7,6 +7,10 @@
           PointerPressed="OnPointerPressed" PointerMoved="OnPointerMoved" PointerReleased="OnPointerReleased">
         <Grid.ContextFlyout>
             <MenuFlyout>
+                <MenuFlyoutItem Text="Tabavoco" IsEnabled="False"/>
+                <MenuFlyoutSeparator/>
+                <ToggleMenuFlyoutItem x:Name="RunOnStartupMenuItem" Text="Run on Startup" Click="OnRunOnStartupClicked"/>
+                <MenuFlyoutSeparator/>
                 <MenuFlyoutItem Text="Exit" Click="OnExitClicked"/>
             </MenuFlyout>
         </Grid.ContextFlyout>

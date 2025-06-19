@@ -21,6 +21,7 @@ public sealed partial class MiniVolumeWindow : Window
         InitializeComponent();
         SetupWindow();
         StartVolumeSyncTimer();
+        InitializeStartupMenuState();
         this.Activated += OnWindowActivated;
         this.Closed += OnWindowClosed;
     }
@@ -200,6 +201,24 @@ public sealed partial class MiniVolumeWindow : Window
         if (currentButtonText != expectedButtonText)
         {
             MuteButton.Content = expectedButtonText;
+        }
+    }
+
+    private void InitializeStartupMenuState()
+    {
+        // Check if app is currently set to run on startup and update menu item
+        RunOnStartupMenuItem.IsChecked = StartupManager.IsStartupEnabled();
+    }
+
+    private void OnRunOnStartupClicked(object sender, RoutedEventArgs e)
+    {
+        if (sender is ToggleMenuFlyoutItem menuItem)
+        {
+            var newState = menuItem.IsChecked;
+            var success = StartupManager.SetStartupEnabled(newState);
+            
+            // Verify the operation succeeded and update UI accordingly
+            menuItem.IsChecked = StartupManager.IsStartupEnabled();
         }
     }
 
