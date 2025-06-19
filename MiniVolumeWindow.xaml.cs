@@ -17,6 +17,7 @@ public sealed partial class MiniVolumeWindow : Window
     {
         InitializeComponent();
         SetupWindow();
+        InitializeVolumeSlider();
         this.Activated += OnWindowActivated;
     }
 
@@ -46,21 +47,23 @@ public sealed partial class MiniVolumeWindow : Window
         StartTopmostTimer();
     }
 
+    private void InitializeVolumeSlider()
+    {
+        // Temporarily remove event handler to prevent setting system volume during initialization
+        VolumeSlider.ValueChanged -= OnVolumeChanged;
+        
+        // Set initial volume from current system volume
+        var currentVolume = VolumeManager.GetCurrentVolume();
+        VolumeSlider.Value = currentVolume;
+        
+        // Re-attach event handler
+        VolumeSlider.ValueChanged += OnVolumeChanged;
+    }
+
     private void OnVolumeChanged(object sender, RangeBaseValueChangedEventArgs e)
     {
         var volume = (int)e.NewValue;
-        
-        // Here you would integrate with Windows volume control APIs
-        SetSystemVolume(volume);
-    }
-
-    private void SetSystemVolume(int volume)
-    {
-        // Placeholder for actual volume control
-        System.Diagnostics.Debug.WriteLine($"Setting volume to {volume}%");
-        
-        // You would implement Windows Core Audio API calls here
-        // For now, this is just a placeholder
+        VolumeManager.SetVolume(volume);
     }
 
     private void OnRightTapped(object sender, RightTappedRoutedEventArgs e)
