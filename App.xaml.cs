@@ -25,16 +25,7 @@ namespace TaBaVoCo
         /// <param name="e">Details about the launch request and process.</param>
         protected override void OnLaunched(LaunchActivatedEventArgs e)
         {
-            window ??= new Window();
-
-            if (window.Content is not Frame rootFrame)
-            {
-                rootFrame = new Frame();
-                rootFrame.NavigationFailed += OnNavigationFailed;
-                window.Content = rootFrame;
-            }
-
-            _ = rootFrame.Navigate(typeof(MainPage), e.Arguments);
+            window ??= new MiniVolumeWindow();
             window.Activate();
         }
 
