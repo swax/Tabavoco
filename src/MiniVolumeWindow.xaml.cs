@@ -14,6 +14,7 @@ public sealed partial class MiniVolumeWindow : Window
     private DispatcherTimer _topmostTimer = new DispatcherTimer();
     private DispatcherTimer _volumeSyncTimer = new DispatcherTimer();
     private bool _isUserInteracting = false;
+    private readonly VolumeManager _volumeManager = new VolumeManager();
 
     public MiniVolumeWindow()
     {
@@ -21,6 +22,12 @@ public sealed partial class MiniVolumeWindow : Window
         SetupWindow();
         StartVolumeSyncTimer();
         this.Activated += OnWindowActivated;
+        this.Closed += OnWindowClosed;
+    }
+
+    private void OnWindowClosed(object sender, WindowEventArgs e)
+    {
+        _volumeManager?.Dispose();
     }
 
     private void SetupWindow()
@@ -51,14 +58,14 @@ public sealed partial class MiniVolumeWindow : Window
 
     private void UpdateMuteButtonIcon()
     {
-        var isMuted = VolumeManager.IsMuted();
+        var isMuted = _volumeManager.IsMuted();
         MuteButton.Content = isMuted ? "🔇" : "🔊";
     }
 
     private void OnVolumeChanged(object sender, RangeBaseValueChangedEventArgs e)
     {
         var volume = (int)e.NewValue;
-        VolumeManager.SetVolume(volume);
+        _volumeManager.SetVolume(volume);
     }
 
     private void OnVolumeSliderPointerPressed(object sender, PointerRoutedEventArgs e)
@@ -88,8 +95,8 @@ public sealed partial class MiniVolumeWindow : Window
     private void OnMuteButtonClicked(object sender, RoutedEventArgs e)
     {
         // Toggle mute state
-        var currentMuteState = VolumeManager.IsMuted();
-        VolumeManager.SetMute(!currentMuteState);
+        var currentMuteState = _volumeManager.IsMuted();
+        _volumeManager.SetMute(!currentMuteState);
         
         // Update button icon to reflect new state
         UpdateMuteButtonIcon();
@@ -172,11 +179,11 @@ public sealed partial class MiniVolumeWindow : Window
     private void SyncVolumeAndMuteState()
     {
         // Refresh cached state from system
-        VolumeManager.RefreshFromSystem();
+        _volumeManager.RefreshFromSystem();
         
         // Get current cached volume and mute state
-        var currentVolume = VolumeManager.GetCurrentVolume();
-        var isMuted = VolumeManager.IsMuted();
+        var currentVolume = _volumeManager.GetCurrentVolume();
+        var isMuted = _volumeManager.IsMuted();
         
         // Update slider if it doesn't match current system volume
         if (Math.Abs(VolumeSlider.Value - currentVolume) > 0.5)
