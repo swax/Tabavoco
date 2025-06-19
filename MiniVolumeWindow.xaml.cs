@@ -33,6 +33,7 @@ public sealed partial class MiniVolumeWindow : Window
     {
         InitializeComponent();
         SetupWindow();
+        this.Activated += OnWindowActivated;
     }
 
     private void SetupWindow()
@@ -56,7 +57,13 @@ public sealed partial class MiniVolumeWindow : Window
         // Position at bottom left corner above taskbar
         var screenHeight = (int)GetSystemMetrics(SM_CYSCREEN);
         
-        this.AppWindow.Move(new Windows.Graphics.PointInt32(20, screenHeight - 100));
+        // Calculate position: 20px from left, 150px from bottom (accounting for taskbar)
+        var x = 20;
+        var y = screenHeight - 150;
+        
+        System.Diagnostics.Debug.WriteLine($"Screen height: {screenHeight}, Positioning at: ({x}, {y})");
+        
+        this.AppWindow.Move(new Windows.Graphics.PointInt32(x, y));
         
         // Make window always on top
         var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
@@ -91,5 +98,30 @@ public sealed partial class MiniVolumeWindow : Window
     private void OnExitClicked(object sender, RoutedEventArgs e)
     {
         Application.Current.Exit();
+    }
+
+    private void OnWindowActivated(object sender, WindowActivatedEventArgs e)
+    {
+        // Only reposition on first activation
+        this.Activated -= OnWindowActivated;
+        
+        // Delay positioning slightly to ensure window is fully initialized
+        var timer = new DispatcherTimer();
+        timer.Interval = TimeSpan.FromMilliseconds(100);
+        timer.Tick += (s, args) => {
+            timer.Stop();
+            PositionWindow();
+        };
+        timer.Start();
+    }
+
+    private void PositionWindow()
+    {
+        var screenHeight = (int)GetSystemMetrics(SM_CYSCREEN);
+        var x = 20;
+        var y = screenHeight - 150; // Moved up from -100 to -150 for better visibility
+        
+        System.Diagnostics.Debug.WriteLine($"Repositioning window - Screen height: {screenHeight}, Moving to: ({x}, {y})");
+        this.AppWindow.Move(new Windows.Graphics.PointInt32(x, y));
     }
 }
