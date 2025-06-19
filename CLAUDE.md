@@ -12,10 +12,27 @@ dotnet.exe build
 dotnet build
 ```
 
-## Key Files
-- **App.xaml.cs**: Application entry point
-- **MiniVolumeWindow.xaml**: Main volume control window
+## Architecture
+
+### Core Components
+- **src/App.xaml.cs**: Application entry point and WinUI 3 setup
+- **src/MiniVolumeWindow.xaml/.cs**: Main UI window with volume slider, mute button, and event handling
+- **src/VolumeManager.cs**: High-level volume control API with caching layer that owns AudioDeviceManager instance
+- **src/AudioDeviceManager.cs**: Low-level Windows Core Audio API COM interop wrapper
+- **src/Win32WindowManager.cs**: Native window positioning and topmost management utilities
 - **Package.appxmanifest**: App package configuration
+
+### Data Flow
+1. **MiniVolumeWindow** owns a VolumeManager instance and disposes it on close
+2. **VolumeManager** caches volume/mute/endpoint state for performance
+3. **Periodic refresh** (1-second timer) calls VolumeManager.RefreshFromSystem() to sync with external changes
+4. **Immediate updates** when user interacts - cache updated instantly for responsive UI
+
+### Key Design Decisions
+- **Caching strategy**: VolumeManager caches state to avoid expensive COM calls on every UI update
+- **Polling approach**: 1-second timer refreshes cache since Windows audio change events are complex
+- **Instance ownership**: Window creates/owns VolumeManager for clear lifecycle management
+- **Separation of concerns**: UI → VolumeManager → AudioDeviceManager → COM APIs
 
 ## Requirements
 - .NET 9.0
