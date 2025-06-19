@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
 using System;
 using System.Runtime.InteropServices;
+using Windows.Foundation;
 
 namespace Tabavoco;
 
@@ -29,6 +30,9 @@ public sealed partial class MiniVolumeWindow : Window
     private const int GWL_STYLE = -16;
     private const int WS_SYSMENU = 0x80000;
 
+    private bool _isDragging = false;
+    private Point _lastPointerPosition;
+
     public MiniVolumeWindow()
     {
         InitializeComponent();
@@ -38,36 +42,25 @@ public sealed partial class MiniVolumeWindow : Window
 
     private void SetupWindow()
     {
+        // Use CompactOverlay presenter for truly borderless window
+        //this.AppWindow.SetPresenter(Microsoft.UI.Windowing.AppWindowPresenterKind.CompactOverlay);
+        
         // Remove title bar completely in WinUI 3
         this.ExtendsContentIntoTitleBar = true;
         this.SetTitleBar(null);
-        
+
         // Hide title bar buttons using AppWindow presenter
         if (this.AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter)
         {
-            presenter.SetBorderAndTitleBar(false, false);
-            presenter.IsResizable = false;
+            presenter.SetBorderAndTitleBar(true, false);
+            presenter.IsResizable = true;
             presenter.IsMaximizable = false;
             presenter.IsMinimizable = false;
+            presenter.IsAlwaysOnTop = true;
         }
         
         // Set window size to 300px width
         this.AppWindow.Resize(new Windows.Graphics.SizeInt32(300, 50));
-        
-        // Position at bottom left corner above taskbar
-        var screenHeight = (int)GetSystemMetrics(SM_CYSCREEN);
-        
-        // Calculate position: 20px from left, 150px from bottom (accounting for taskbar)
-        var x = 20;
-        var y = screenHeight - 150;
-        
-        System.Diagnostics.Debug.WriteLine($"Screen height: {screenHeight}, Positioning at: ({x}, {y})");
-        
-        this.AppWindow.Move(new Windows.Graphics.PointInt32(x, y));
-        
-        // Make window always on top
-        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
-        SetWindowPos(hwnd, (IntPtr)HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_SHOWWINDOW);
     }
 
     private void OnVolumeChanged(object sender, RangeBaseValueChangedEventArgs e)
@@ -110,18 +103,61 @@ public sealed partial class MiniVolumeWindow : Window
         timer.Interval = TimeSpan.FromMilliseconds(100);
         timer.Tick += (s, args) => {
             timer.Stop();
-            PositionWindow();
+            SetInitialWindowPosition();
         };
         timer.Start();
     }
 
-    private void PositionWindow()
+    private void SetInitialWindowPosition()
     {
         var screenHeight = (int)GetSystemMetrics(SM_CYSCREEN);
-        var x = 20;
-        var y = screenHeight - 150; // Moved up from -100 to -150 for better visibility
+        var x = 10;
+        var y = screenHeight - 50; // Moved up from -100 to -150 for better visibility
         
         System.Diagnostics.Debug.WriteLine($"Repositioning window - Screen height: {screenHeight}, Moving to: ({x}, {y})");
         this.AppWindow.Move(new Windows.Graphics.PointInt32(x, y));
+    }
+
+    private void OnPointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        var grid = sender as Grid;
+        if (grid != null)
+        {
+            _isDragging = true;
+            _lastPointerPosition = e.GetCurrentPoint(grid).Position;
+            grid.CapturePointer(e.Pointer);
+        }
+    }
+
+    private void OnPointerMoved(object sender, PointerRoutedEventArgs e)
+    {
+        if (_isDragging)
+        {
+            var grid = sender as Grid;
+            if (grid != null)
+            {
+                var currentPosition = e.GetCurrentPoint(grid).Position;
+                var deltaX = currentPosition.X - _lastPointerPosition.X;
+                var deltaY = currentPosition.Y - _lastPointerPosition.Y;
+
+                var currentPos = this.AppWindow.Position;
+                var newX = currentPos.X + (int)deltaX;
+                var newY = currentPos.Y + (int)deltaY;
+
+                this.AppWindow.Move(new Windows.Graphics.PointInt32(newX, newY));
+
+                System.Diagnostics.Debug.WriteLine($"Dragging window to: ({newX}, {newY})");
+            }
+        }
+    }
+
+    private void OnPointerReleased(object sender, PointerRoutedEventArgs e)
+    {
+        if (_isDragging)
+        {
+            _isDragging = false;
+            var grid = sender as Grid;
+            grid?.ReleasePointerCapture(e.Pointer);
+        }
     }
 }
