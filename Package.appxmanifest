@@ -10,14 +10,14 @@
 
   <Identity
     Name="4e78bcb2-6b7e-4ca2-9493-e7ff7416c548"
-    Publisher="CN=User Name"
+    Publisher="CN=Tabavoco"
     Version="1.0.0.0" />
 
   <mp:PhoneIdentity PhoneProductId="4e78bcb2-6b7e-4ca2-9493-e7ff7416c548" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
     <DisplayName>Tabavoco</DisplayName>
-    <PublisherDisplayName>User Name</PublisherDisplayName>
+    <PublisherDisplayName>Tabavoco</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
 

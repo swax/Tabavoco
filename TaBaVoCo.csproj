@@ -15,7 +15,9 @@
         <LangVersion>latest</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
         <RootNamespace>Tabavoco</RootNamespace>
-        <EnableWindowsTargeting>true</EnableWindowsTargeting>        <!-- App Options -->
+        <EnableWindowsTargeting>true</EnableWindowsTargeting>
+        
+        <!-- App Options -->
         <UseRidGraph>true</UseRidGraph>
         <Platforms>x64;x86;ARM64</Platforms>
         <Platform Condition="'$(Platform)' == ''">x64</Platform>
