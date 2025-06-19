@@ -25,13 +25,18 @@ public sealed partial class MiniVolumeWindow : Window
     private const int HWND_TOPMOST = -1;
     private const uint SWP_NOACTIVATE = 0x0010;
     private const uint SWP_SHOWWINDOW = 0x0040;
+    private const uint SWP_NOMOVE = 0x0002;
+    private const uint SWP_NOSIZE = 0x0001;
     private const int SM_CXSCREEN = 0;
     private const int SM_CYSCREEN = 1;
     private const int GWL_STYLE = -16;
+    private const int GWL_EXSTYLE = -20;
     private const int WS_SYSMENU = 0x80000;
+    private const int WS_EX_TOPMOST = 0x00000008;
 
     private bool _isDragging = false;
     private Point _lastPointerPosition;
+    private DispatcherTimer _topmostTimer = new DispatcherTimer();
 
     public MiniVolumeWindow()
     {
@@ -53,7 +58,7 @@ public sealed partial class MiniVolumeWindow : Window
         if (this.AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter)
         {
             presenter.SetBorderAndTitleBar(true, false);
-            presenter.IsResizable = true;
+            presenter.IsResizable = false;
             presenter.IsMaximizable = false;
             presenter.IsMinimizable = false;
             presenter.IsAlwaysOnTop = true;
@@ -61,14 +66,14 @@ public sealed partial class MiniVolumeWindow : Window
         
         // Set window size to 300px width
         this.AppWindow.Resize(new Windows.Graphics.SizeInt32(300, 50));
+        
+        // Start timer to continuously enforce topmost status
+        StartTopmostTimer();
     }
 
     private void OnVolumeChanged(object sender, RangeBaseValueChangedEventArgs e)
     {
-        if (VolumeLabel == null) return;
-        
         var volume = (int)e.NewValue;
-        VolumeLabel.Text = $"{volume}%";
         
         // Here you would integrate with Windows volume control APIs
         SetSystemVolume(volume);
@@ -116,6 +121,32 @@ public sealed partial class MiniVolumeWindow : Window
         
         System.Diagnostics.Debug.WriteLine($"Repositioning window - Screen height: {screenHeight}, Moving to: ({x}, {y})");
         this.AppWindow.Move(new Windows.Graphics.PointInt32(x, y));
+        
+        // Apply extended topmost style
+        ApplyTopmostStyle();
+    }
+
+    private void StartTopmostTimer()
+    {
+        // Timer continuously enforces topmost status because Windows taskbar 
+        // actively changes our app's z-index when the taskbar is clicked
+        _topmostTimer = new DispatcherTimer();
+        _topmostTimer.Interval = TimeSpan.FromMilliseconds(500); // Check every 500ms
+        _topmostTimer.Tick += (s, e) => ApplyTopmostStyle();
+        _topmostTimer.Start();
+    }
+
+    private void ApplyTopmostStyle()
+    {
+        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+        
+        // Dual approach: Extended style is more persistent, SetWindowPos has immediate effect
+        // Standard WinUI 3 IsAlwaysOnTop doesn't guarantee positioning above taskbar
+        var exStyle = GetWindowLong(hwnd, GWL_EXSTYLE);
+        SetWindowLong(hwnd, GWL_EXSTYLE, exStyle | WS_EX_TOPMOST);
+        
+        SetWindowPos(hwnd, (IntPtr)HWND_TOPMOST, 0, 0, 0, 0, 
+                     SWP_NOACTIVATE | SWP_NOSIZE | SWP_NOMOVE);
     }
 
     private void OnPointerPressed(object sender, PointerRoutedEventArgs e)

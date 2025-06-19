@@ -21,3 +21,6 @@ dotnet build
 - .NET 9.0
 - Windows 10.0.19041.0 or higher
 - Platforms: x64, x86, ARM64
+
+## Development Guidelines
+- Always add comments explaining why code is implemented a particular way, especially for workarounds or non-obvious solutions
