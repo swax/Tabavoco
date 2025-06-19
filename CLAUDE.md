@@ -1,39 +1,23 @@
-# TaBaVoCo - WinUI 3 Application
+# TaBaVoCo - Volume Control App
 
-## Project Overview
-This is a WinUI 3 application targeting .NET 9.0 for Windows 10/11.
+## Overview
+A simple WinUI 3 volume control application that sits in the bottom left corner of the screen, providing persistent and easily accessible volume control.
 
-## Build Instructions
-
-### From WSL2
-Use Windows dotnet to build the application:
+## Build
 ```bash
+# From WSL2
 dotnet.exe build
-```
 
-### From Windows
-```cmd
+# From Windows
 dotnet build
 ```
 
-## Project Structure
-- **App.xaml/App.xaml.cs**: Application entry point
-- **Views/MainPage.xaml**: Main UI page
-- **Assets/**: Application icons and images
+## Key Files
+- **App.xaml.cs**: Application entry point
+- **MiniVolumeWindow.xaml**: Main volume control window
 - **Package.appxmanifest**: App package configuration
-- **TaBaVoCo.csproj**: Project configuration
 
-## Target Framework
-- .NET 9.0 with Windows 10.0.19041.0
-- Minimum Windows version: 10.0.17763.0
+## Requirements
+- .NET 9.0
+- Windows 10.0.19041.0 or higher
 - Platforms: x64, x86, ARM64
-
-## Dependencies
-- Microsoft.WindowsAppSDK
-- Microsoft.Web.WebView2
-- Microsoft.Windows.SDK.BuildTools
-
-## Development Notes
-- This application requires Windows to build and run
-- From WSL2, use `dotnet.exe` instead of `dotnet` for building
-- XAML compilation requires Windows environment
