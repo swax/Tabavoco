@@ -3,7 +3,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     
-    <Grid Background="#E0000000" RightTapped="OnRightTapped" 
+    <Grid Background="#222222" RightTapped="OnRightTapped" 
           PointerPressed="OnPointerPressed" PointerMoved="OnPointerMoved" PointerReleased="OnPointerReleased">
         <Grid.ContextFlyout>
             <MenuFlyout>
@@ -12,12 +12,16 @@
         </Grid.ContextFlyout>
         
         <StackPanel Orientation="Horizontal" Padding="8,0">
-            <TextBlock Text="🔊" 
-                       VerticalAlignment="Center" 
-                       FontSize="16" 
-                       Foreground="White"/>
+            <Button x:Name="MuteButton"
+                    Content="🔊"
+                    Background="Transparent" 
+                    BorderThickness="0"
+                    FontSize="16" 
+                    Foreground="White"
+                    VerticalAlignment="Center"
+                    Click="OnMuteButtonClicked"/>
             <Slider x:Name="VolumeSlider"
-                    Width="190"
+                    Width="170"
                     Minimum="0"
                     Maximum="100"
                     Padding="8,0" 

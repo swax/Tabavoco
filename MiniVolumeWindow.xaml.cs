@@ -18,6 +18,7 @@ public sealed partial class MiniVolumeWindow : Window
         InitializeComponent();
         SetupWindow();
         InitializeVolumeSlider();
+        InitializeMuteButton();
         this.Activated += OnWindowActivated;
     }
 
@@ -60,10 +61,32 @@ public sealed partial class MiniVolumeWindow : Window
         VolumeSlider.ValueChanged += OnVolumeChanged;
     }
 
+    private void InitializeMuteButton()
+    {
+        // Set initial mute button state based on current system mute status
+        UpdateMuteButtonIcon();
+    }
+
+    private void UpdateMuteButtonIcon()
+    {
+        var isMuted = VolumeManager.IsMuted();
+        MuteButton.Content = isMuted ? "🔇" : "🔊";
+    }
+
     private void OnVolumeChanged(object sender, RangeBaseValueChangedEventArgs e)
     {
         var volume = (int)e.NewValue;
         VolumeManager.SetVolume(volume);
+    }
+
+    private void OnMuteButtonClicked(object sender, RoutedEventArgs e)
+    {
+        // Toggle mute state
+        var currentMuteState = VolumeManager.IsMuted();
+        VolumeManager.SetMute(!currentMuteState);
+        
+        // Update button icon to reflect new state
+        UpdateMuteButtonIcon();
     }
 
     private void OnRightTapped(object sender, RightTappedRoutedEventArgs e)
