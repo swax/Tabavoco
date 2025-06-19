@@ -3,7 +3,13 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     
-    <Grid Background="#E0000000" Padding="8">
+    <Grid Background="#E0000000" Padding="8" RightTapped="OnRightTapped">
+        <Grid.ContextFlyout>
+            <MenuFlyout>
+                <MenuFlyoutItem Text="Exit" Click="OnExitClicked"/>
+            </MenuFlyout>
+        </Grid.ContextFlyout>
+        
         <StackPanel Orientation="Horizontal" Spacing="8">
             <TextBlock Text="🔊" 
                        VerticalAlignment="Center" 

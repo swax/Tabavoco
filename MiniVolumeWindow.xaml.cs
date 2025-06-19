@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.UI.Xaml.Input;
 using System;
 using System.Runtime.InteropServices;
 
@@ -80,5 +81,15 @@ public sealed partial class MiniVolumeWindow : Window
         
         // You would implement Windows Core Audio API calls here
         // For now, this is just a placeholder
+    }
+
+    private void OnRightTapped(object sender, RightTappedRoutedEventArgs e)
+    {
+        // Context menu will show automatically due to ContextFlyout
+    }
+
+    private void OnExitClicked(object sender, RoutedEventArgs e)
+    {
+        Application.Current.Exit();
     }
 }
