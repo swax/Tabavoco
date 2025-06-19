@@ -1,4 +1,4 @@
-# TaBaVoCo - Volume Control App
+# Tabavoco - Volume Control App
 
 ## Overview
 A simple WinUI 3 volume control application that sits in the bottom left corner of the screen, providing persistent and easily accessible volume control.

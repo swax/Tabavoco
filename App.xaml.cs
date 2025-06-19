@@ -1,6 +1,6 @@
 using Microsoft.UI.Xaml.Navigation;
 
-namespace TaBaVoCo
+namespace Tabavoco
 {
     /// <summary>
     /// Provides application-specific behavior to supplement the default Application class.

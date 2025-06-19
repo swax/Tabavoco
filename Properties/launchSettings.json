@@ -1,9 +1,9 @@
 {
   "profiles": {
-    "TaBaVoCo (Package)": {
+    "Tabavoco (Package)": {
       "commandName": "MsixPackage"
     },
-    "TaBaVoCo (Unpackaged)": {
+    "Tabavoco (Unpackaged)": {
       "commandName": "Project"
     }
   }

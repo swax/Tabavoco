@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}\\TaBaVoCo.csproj",
+                "${workspaceFolder}\\Tabavoco.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -23,7 +23,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}\\TaBaVoCo.csproj",
+                "${workspaceFolder}\\Tabavoco.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -41,7 +41,7 @@
                 "watch",
                 "run",
                 "--project",
-                "${workspaceFolder}\\TaBaVoCo.csproj"
+                "${workspaceFolder}\\Tabavoco.csproj"
             ],
             "group": "build",
             "presentation": {
