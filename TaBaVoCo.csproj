@@ -14,7 +14,7 @@
         <Nullable>enable</Nullable>
         <LangVersion>latest</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
-        <RootNamespace>TaBaVoCo</RootNamespace>
+        <RootNamespace>Tabavoco</RootNamespace>
         <EnableWindowsTargeting>true</EnableWindowsTargeting>        <!-- App Options -->
         <UseRidGraph>true</UseRidGraph>
         <Platforms>x64;x86;ARM64</Platforms>

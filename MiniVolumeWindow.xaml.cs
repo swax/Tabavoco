@@ -5,7 +5,7 @@ using Microsoft.UI.Xaml.Input;
 using System;
 using System.Runtime.InteropServices;
 
-namespace TaBaVoCo;
+namespace Tabavoco;
 
 public sealed partial class MiniVolumeWindow : Window
 {

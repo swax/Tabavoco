@@ -2,29 +2,29 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch TaBaVoCo (Unpackaged)",
+            "name": "Launch Tabavoco (Unpackaged)",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}\\bin\\Debug\\net9.0-windows10.0.19041.0\\TaBaVoCo.exe",
+            "program": "${workspaceFolder}\\bin\\Debug\\net9.0-windows10.0.19041.0\\Tabavoco.exe",
             "args": [],
             "cwd": "${workspaceFolder}",
             "console": "internalConsole",
             "stopAtEntry": false
         },
         {
-            "name": "Launch TaBaVoCo (x64)",
+            "name": "Launch Tabavoco (x64)",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}\\bin\\x64\\Debug\\net9.0-windows10.0.19041.0\\TaBaVoCo.exe",
+            "program": "${workspaceFolder}\\bin\\x64\\Debug\\net9.0-windows10.0.19041.0\\Tabavoco.exe",
             "args": [],
             "cwd": "${workspaceFolder}",
             "console": "internalConsole",
             "stopAtEntry": false
         },
         {
-            "name": "Attach to TaBaVoCo",
+            "name": "Attach to Tabavoco",
             "type": "coreclr",
             "request": "attach",
             "processId": "${command:pickProcess}"
