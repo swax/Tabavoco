@@ -17,6 +17,16 @@
         <RootNamespace>Tabavoco</RootNamespace>
         <EnableWindowsTargeting>true</EnableWindowsTargeting>
         
+        <!-- Assembly Information -->
+        <AssemblyTitle>Tabavoco</AssemblyTitle>
+        <AssemblyDescription>Taskbar Volume Control App</AssemblyDescription>
+        <AssemblyCompany>John Marshall</AssemblyCompany>
+        <AssemblyProduct>Tabavoco</AssemblyProduct>
+        <AssemblyVersion>1.0.0.0</AssemblyVersion>
+        <FileVersion>1.0.0.0</FileVersion>
+        <AssemblyCopyright>Copyright © 2025 John Marshall</AssemblyCopyright>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        
         <!-- Preserve COM support for framework-dependent deployment -->
         <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
         <TieredCompilation>false</TieredCompilation>
