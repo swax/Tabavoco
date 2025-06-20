@@ -26,8 +26,9 @@ public static class StartupManager
                 return key?.GetValue(AppName) != null;
             }
         }
-        catch
+        catch (Exception ex)
         {
+            Logger.WriteError($"Failed to check startup status: {ex.Message}");
             return false;
         }
     }
@@ -51,6 +52,7 @@ public static class StartupManager
                         key?.SetValue(AppName, exePath);
                         return true;
                     }
+                    Logger.WriteError("Failed to enable startup: Could not determine executable path");
                     return false;
                 }
                 else
@@ -60,8 +62,9 @@ public static class StartupManager
                 }
             }
         }
-        catch
+        catch (Exception ex)
         {
+            Logger.WriteError($"Failed to {(enable ? "enable" : "disable")} startup: {ex.Message}");
             return false;
         }
     }
@@ -74,20 +77,26 @@ public static class StartupManager
     {
         try
         {
-            // For packaged WinUI apps, get the actual executable path
-            var assembly = Assembly.GetExecutingAssembly();
-            var location = assembly.Location;
-            
-            if (!string.IsNullOrEmpty(location) && File.Exists(location))
+            // First try Environment.ProcessPath (preferred for .NET 6+)
+            var processPath = Environment.ProcessPath;
+            if (!string.IsNullOrEmpty(processPath) && File.Exists(processPath))
             {
-                return location;
+                return processPath;
             }
             
             // Fallback to process main module
-            return System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName ?? "";
+            var mainModule = System.Diagnostics.Process.GetCurrentProcess().MainModule;
+            if (mainModule?.FileName != null && File.Exists(mainModule.FileName))
+            {
+                return mainModule.FileName;
+            }
+            
+            Logger.WriteError("Failed to determine executable path: All methods returned null or non-existent paths");
+            return "";
         }
-        catch
+        catch (Exception ex)
         {
+            Logger.WriteError($"Failed to get executable path: {ex.Message}");
             return "";
         }
     }
