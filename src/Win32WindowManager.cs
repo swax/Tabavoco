@@ -23,6 +23,9 @@ public static class Win32WindowManager
 
     [DllImport("user32.dll")]
     private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+
+    [DllImport("user32.dll")]
+    private static extern uint GetDpiForWindow(IntPtr hWnd);
     #endregion
 
     #region Win32 Constants
@@ -89,5 +92,21 @@ public static class Win32WindowManager
         var y = screenHeight - offsetY;
         
         window.AppWindow.Move(new PointInt32(x, y));
+    }
+
+    /// <summary>
+    /// Gets the window handle for a WinUI 3 window
+    /// </summary>
+    public static IntPtr GetWindowHandle(Window window)
+    {
+        return WinRT.Interop.WindowNative.GetWindowHandle(window);
+    }
+
+    /// <summary>
+    /// Gets the DPI for a specific window
+    /// </summary>
+    public static uint GetDpiForWindowHandle(IntPtr hwnd)
+    {
+        return GetDpiForWindow(hwnd);
     }
 }

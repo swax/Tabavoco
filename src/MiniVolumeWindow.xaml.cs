@@ -10,8 +10,8 @@ namespace Tabavoco;
 public sealed partial class MiniVolumeWindow : Window
 {
     #region Constants
-    private const int WINDOW_WIDTH = 300;
-    private const int WINDOW_HEIGHT = 50;
+    private const int LOGICAL_WINDOW_WIDTH = 240; // Base width at 100% scale (300px at 125% = 240px logical)
+    private const int LOGICAL_WINDOW_HEIGHT = 40; // Base height at 100% scale (50px at 125% = 40px logical)
     private const int POSITIONING_OFFSET_X = 10;
     private const int POSITIONING_OFFSET_Y = 50;
     private const int TOPMOST_TIMER_INTERVAL_MS = 500;
@@ -26,6 +26,7 @@ public sealed partial class MiniVolumeWindow : Window
     private DispatcherTimer _volumeSyncTimer = new DispatcherTimer();
     private bool _isUserInteracting = false;
     private readonly VolumeManager _volumeManager = new VolumeManager();
+    private double _dpiScaleFactor = 1.0;
     #endregion
 
     #region Constructor & Lifecycle
@@ -74,14 +75,49 @@ public sealed partial class MiniVolumeWindow : Window
             presenter.IsAlwaysOnTop = true;
         }
         
-        // Set window size using constants
-        this.AppWindow.Resize(new Windows.Graphics.SizeInt32(WINDOW_WIDTH, WINDOW_HEIGHT));
+        // Calculate DPI scale factor and set window size accordingly
+        CalculateDpiScaleFactor();
+        var scaledWidth = (int)(LOGICAL_WINDOW_WIDTH * _dpiScaleFactor);
+        var scaledHeight = (int)(LOGICAL_WINDOW_HEIGHT * _dpiScaleFactor);
+        this.AppWindow.Resize(new Windows.Graphics.SizeInt32(scaledWidth, scaledHeight));
         
         // Configure as tool window to hide from taskbar
         Win32WindowManager.ConfigureAsToolWindow(this);
         
         // Start timer to continuously enforce topmost status
         StartTopmostTimer();
+    }
+
+    private void CalculateDpiScaleFactor()
+    {
+        // Get the DPI scale factor using XamlRoot if available
+        if (this.Content?.XamlRoot != null)
+        {
+            _dpiScaleFactor = this.Content.XamlRoot.RasterizationScale;
+            Logger.WriteInfo($"Got DPI scale factor from XamlRoot: {_dpiScaleFactor}");
+            return;
+        }
+        
+        // Fallback: Use Win32 API to get DPI
+        try
+        {
+            var hwnd = Win32WindowManager.GetWindowHandle(this);
+            if (hwnd != IntPtr.Zero)
+            {
+                uint dpi = Win32WindowManager.GetDpiForWindowHandle(hwnd);
+                _dpiScaleFactor = dpi / 96.0; // 96 is the standard DPI
+                Logger.WriteInfo($"Got DPI scale factor from Win32 API: {_dpiScaleFactor} (DPI: {dpi})");
+                return;
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.WriteError($"Failed to get DPI from Win32 API: {ex.Message}");
+        }
+        
+        // Final fallback: assume 125% scaling as default since that's what it was designed for
+        _dpiScaleFactor = 1.25;
+        Logger.WriteInfo($"Using fallback DPI scale factor: {_dpiScaleFactor}");
     }
 
     #region Volume Control Event Handlers
