@@ -11,7 +11,8 @@ A lightweight WinUI 3 volume control application that provides persistent, easil
 - **Mute toggle** - Quick mute/unmute with visual feedback
 - **Draggable interface** - Move the control anywhere on screen
 - **Minimal footprint** - No taskbar presence, small memory usage
-- **Right-click context menu** - Easy exit option
+- **Right-click context menu** - Easy exit and run on startup option
+- **External sync** - Automatically detects and syncs with volume changes made by other applications
 
 ## Build & Run
 
