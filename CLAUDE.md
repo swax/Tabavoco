@@ -20,6 +20,8 @@ dotnet build
 - **src/VolumeManager.cs**: High-level volume control API with caching layer that owns AudioDeviceManager instance
 - **src/AudioDeviceManager.cs**: Low-level Windows Core Audio API COM interop wrapper
 - **src/Win32WindowManager.cs**: Native window positioning and topmost management utilities
+- **src/StartupManager.cs**: Windows startup registry management for auto-start functionality
+- **src/Logger.cs**: Debug logging utility with configurable info/error level support and file output
 - **Package.appxmanifest**: App package configuration
 
 ### Data Flow
