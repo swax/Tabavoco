@@ -100,7 +100,7 @@ public class AudioDeviceManager : IDisposable
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to get current volume endpoint: {ex.Message}");
+            Logger.WriteError($"Failed to get current volume endpoint: {ex.Message}");
         }
         return null;
     }
@@ -119,7 +119,7 @@ public class AudioDeviceManager : IDisposable
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to get volume scalar: {ex.Message}");
+            Logger.WriteError($"Failed to get volume scalar: {ex.Message}");
             return null;
         }
     }
@@ -140,7 +140,7 @@ public class AudioDeviceManager : IDisposable
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to set volume scalar: {ex.Message}");
+            Logger.WriteError($"Failed to set volume scalar: {ex.Message}");
             return false;
         }
     }
@@ -159,7 +159,7 @@ public class AudioDeviceManager : IDisposable
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to get mute state: {ex.Message}");
+            Logger.WriteError($"Failed to get mute state: {ex.Message}");
             return null;
         }
     }
@@ -180,7 +180,7 @@ public class AudioDeviceManager : IDisposable
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to set mute state: {ex.Message}");
+            Logger.WriteError($"Failed to set mute state: {ex.Message}");
             return false;
         }
     }

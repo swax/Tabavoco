@@ -1,0 +1,13 @@
+{
+  "runtimeOptions": {
+    "configProperties": {
+      "System.Runtime.Serialization.EnableUnsafeBinaryFormatterSerialization": false,
+      "Microsoft.Extensions.DependencyInjection.VerifyOpenGenericServiceTrimmability": false,
+      "System.Reflection.NullabilityInfoContext.IsSupported": true,
+      "System.ComponentModel.TypeConverter.EnableUnsafeBinaryFormatterInDesigntimeLicenseContextSerialization": false,
+      "System.Resources.UseSystemResourceKeys": false,
+      "System.Runtime.InteropServices.BuiltInComInterop.IsSupported": true,
+      "System.Runtime.InteropServices.EnableConsumingManagedCodeFromNativeHosting": true
+    }
+  }
+}
