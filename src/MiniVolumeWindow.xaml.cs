@@ -19,10 +19,13 @@ public sealed partial class MiniVolumeWindow : Window
     public MiniVolumeWindow()
     {
         InitializeComponent();
-        SetupWindow();
+        SetupWindowHidden();
+        
+        // Position window immediately after setup but before showing
+        SetInitialWindowPosition();
+        
         StartVolumeSyncTimer();
         InitializeStartupMenuState();
-        this.Activated += OnWindowActivated;
         this.Closed += OnWindowClosed;
     }
 
@@ -31,7 +34,7 @@ public sealed partial class MiniVolumeWindow : Window
         _volumeManager?.Dispose();
     }
 
-    private void SetupWindow()
+    private void SetupWindowHidden()
     {
         // Remove title bar completely in WinUI 3
         this.ExtendsContentIntoTitleBar = true;
@@ -55,6 +58,13 @@ public sealed partial class MiniVolumeWindow : Window
         
         // Start timer to continuously enforce topmost status
         StartTopmostTimer();
+    }
+
+    public new void Activate()
+    {
+        // Window is already positioned in constructor, just show and activate
+        this.AppWindow.Show();
+        base.Activate();
     }
 
     private void UpdateMuteButtonIcon()
@@ -125,20 +135,6 @@ public sealed partial class MiniVolumeWindow : Window
         Application.Current.Exit();
     }
 
-    private void OnWindowActivated(object sender, WindowActivatedEventArgs e)
-    {
-        // Only reposition on first activation
-        this.Activated -= OnWindowActivated;
-        
-        // Delay positioning slightly to ensure window is fully initialized
-        var timer = new DispatcherTimer();
-        timer.Interval = TimeSpan.FromMilliseconds(100);
-        timer.Tick += (s, args) => {
-            timer.Stop();
-            SetInitialWindowPosition();
-        };
-        timer.Start();
-    }
 
     private void SetInitialWindowPosition()
     {
