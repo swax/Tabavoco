@@ -33,35 +33,33 @@ dotnet build
 dotnet run
 ```
 
-## Packaging
-
-Build for distribution (WinUI 3 has compatibility issues with self-contained publishing):
-
-```bash
-dotnet.exe build -c Release
-```
-
-Output will be in `bin/x64/Release/net9.0-windows10.0.19041.0/win-x64/`
-
-The entire directory can be distributed, but requires .NET 9.0 Desktop Runtime on target machines.
-
-> **Note**: Self-contained publishing is not supported due to WinRT projection compatibility issues with WinUI 3.
-
 ## Architecture
 
-### Key Components
+### Project Structure
+```
+src/
+├── App.xaml(.cs)                # Application entry point and WinUI 3 setup
+├── MiniVolumeWindow.xaml(.cs)   # Main UI window with volume slider and event handling
+├── VolumeManager.cs             # High-level volume control API with caching layer
+├── AudioDeviceManager.cs        # Low-level Windows Core Audio API COM interop wrapper
+├── Win32WindowManager.cs        # Native window positioning and topmost management
+├── StartupManager.cs            # Windows startup registry management
+└── Logger.cs                    # Debug logging utility with file output
+```
 
-- **VolumeManager.cs** - Windows Core Audio API integration for system volume control
-- **Win32WindowManager.cs** - Win32 API wrapper for window positioning and styling
-- **MiniVolumeWindow.xaml/.cs** - Main UI window with volume slider and mute button
-- **App.xaml.cs** - Application entry point and lifecycle management
+### Data Flow & Design
+1. **MiniVolumeWindow** owns a VolumeManager instance and disposes it on close
+2. **VolumeManager** caches volume/mute/endpoint state to avoid expensive COM calls
+3. **Periodic refresh** (1-second timer) syncs with external volume changes
+4. **Immediate updates** when user interacts for responsive UI
+5. **Separation of concerns**: UI → VolumeManager → AudioDeviceManager → COM APIs
 
-### Technical Details
-
-- Uses Windows Core Audio API (IAudioEndpointVolume) for direct system volume access
+### Technical Implementation
+- Windows Core Audio API (IAudioEndpointVolume) for direct system volume access
 - Win32 API calls ensure window stays above taskbar and doesn't appear in task switcher
 - Timer-based topmost enforcement overcomes Windows taskbar z-index changes
 - Pointer events enable drag-to-move functionality
+- Polling approach used since Windows audio change events are complex
 
 ## Testing (Manual)
 
@@ -75,20 +73,22 @@ The entire directory can be distributed, but requires .NET 9.0 Desktop Runtime o
 
 ## Development
 
-### Project Structure
-```
-src/
-├── App.xaml(.cs)           # Application entry point
-├── MiniVolumeWindow.xaml(.cs) # Main UI window
-├── VolumeManager.cs        # System volume integration
-├── Win32WindowManager.cs   # Window positioning/styling
-└── Imports.cs             # Global imports
-```
-
-### Development Guidelines
+### Guidelines
 - Always add comments explaining why code is implemented a particular way
 - Test manually after changes to volume or window management code
-- Use Debug.WriteLine for troubleshooting COM/Win32 API issues
+- Use Debug.WriteLine/Error for troubleshooting COM/Win32 API issues
+
+## Packaging
+
+Build for distribution: Self-Contained (~80 MB includes .NET 9 and Windows App SKD)
+
+```bash
+dotnet publish -c Release -r win-x64 --self-contained -p:PublishTrimmed=false -p:WindowsAppSDKSelfContained=true
+```
+
+Output will be in `bin/Release/net9.0-windows10.0.19041.0/win-x64/publish/`
+
+> **Note**: Trimming must be disabled to preserve COM interop functionality for Windows Audio API.
 
 ## License
 
