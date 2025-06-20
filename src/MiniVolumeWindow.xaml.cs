@@ -9,13 +9,26 @@ namespace Tabavoco;
 
 public sealed partial class MiniVolumeWindow : Window
 {
+    #region Constants
+    private const int WINDOW_WIDTH = 300;
+    private const int WINDOW_HEIGHT = 50;
+    private const int POSITIONING_OFFSET_X = 10;
+    private const int POSITIONING_OFFSET_Y = 50;
+    private const int TOPMOST_TIMER_INTERVAL_MS = 500;
+    private const int VOLUME_SYNC_TIMER_INTERVAL_MS = 1000;
+    private const double VOLUME_TOLERANCE = 0.5;
+    #endregion
+
+    #region Fields
     private bool _isDragging = false;
     private Point _lastPointerPosition;
     private DispatcherTimer _topmostTimer = new DispatcherTimer();
     private DispatcherTimer _volumeSyncTimer = new DispatcherTimer();
     private bool _isUserInteracting = false;
     private readonly VolumeManager _volumeManager = new VolumeManager();
+    #endregion
 
+    #region Constructor & Lifecycle
     public MiniVolumeWindow()
     {
         InitializeComponent();
@@ -34,6 +47,15 @@ public sealed partial class MiniVolumeWindow : Window
         _volumeManager?.Dispose();
     }
 
+    public new void Activate()
+    {
+        // Window is already positioned in constructor, just show and activate
+        this.AppWindow.Show();
+        base.Activate();
+    }
+    #endregion
+
+    #region Window Setup & Configuration
     private void SetupWindowHidden()
     {
         // Remove title bar completely in WinUI 3
@@ -50,8 +72,8 @@ public sealed partial class MiniVolumeWindow : Window
             presenter.IsAlwaysOnTop = true;
         }
         
-        // Set window size to 300px width
-        this.AppWindow.Resize(new Windows.Graphics.SizeInt32(300, 50));
+        // Set window size using constants
+        this.AppWindow.Resize(new Windows.Graphics.SizeInt32(WINDOW_WIDTH, WINDOW_HEIGHT));
         
         // Configure as tool window to hide from taskbar
         Win32WindowManager.ConfigureAsToolWindow(this);
@@ -60,13 +82,7 @@ public sealed partial class MiniVolumeWindow : Window
         StartTopmostTimer();
     }
 
-    public new void Activate()
-    {
-        // Window is already positioned in constructor, just show and activate
-        this.AppWindow.Show();
-        base.Activate();
-    }
-
+    #region Volume Control Event Handlers
     private void UpdateMuteButtonIcon()
     {
         var isMuted = _volumeManager.IsMuted();
@@ -124,7 +140,9 @@ public sealed partial class MiniVolumeWindow : Window
         // User finished interacting with mute button
         _isUserInteracting = false;
     }
+    #endregion
 
+    #region Context Menu & Application Event Handlers
     private void OnRightTapped(object sender, RightTappedRoutedEventArgs e)
     {
         // Context menu will show automatically due to ContextFlyout
@@ -135,11 +153,30 @@ public sealed partial class MiniVolumeWindow : Window
         Application.Current.Exit();
     }
 
+    private void InitializeStartupMenuState()
+    {
+        // Check if app is currently set to run on startup and update menu item
+        RunOnStartupMenuItem.IsChecked = StartupManager.IsStartupEnabled();
+    }
+
+    private void OnRunOnStartupClicked(object sender, RoutedEventArgs e)
+    {
+        if (sender is ToggleMenuFlyoutItem menuItem)
+        {
+            var newState = menuItem.IsChecked;
+            var success = StartupManager.SetStartupEnabled(newState);
+            
+            // Verify the operation succeeded and update UI accordingly
+            menuItem.IsChecked = StartupManager.IsStartupEnabled();
+        }
+    }
+    #endregion
+
 
     private void SetInitialWindowPosition()
     {
         // Position window at bottom left of screen
-        Win32WindowManager.PositionAtBottomLeft(this, 10, 50);
+        Win32WindowManager.PositionAtBottomLeft(this, POSITIONING_OFFSET_X, POSITIONING_OFFSET_Y);
         
         // Apply extended topmost style
         Win32WindowManager.ApplyTopmostStyle(this);
@@ -150,16 +187,18 @@ public sealed partial class MiniVolumeWindow : Window
         // Timer continuously enforces topmost status because Windows taskbar 
         // actively changes our app's z-index when the taskbar is clicked
         _topmostTimer = new DispatcherTimer();
-        _topmostTimer.Interval = TimeSpan.FromMilliseconds(500); // Check every 500ms
+        _topmostTimer.Interval = TimeSpan.FromMilliseconds(TOPMOST_TIMER_INTERVAL_MS);
         _topmostTimer.Tick += (s, e) => Win32WindowManager.ApplyTopmostStyle(this);
         _topmostTimer.Start();
     }
+    #endregion
 
+    #region Volume Management & Synchronization
     private void StartVolumeSyncTimer()
     {
         // Timer to periodically sync volume and mute state when user isn't interacting
         _volumeSyncTimer = new DispatcherTimer();
-        _volumeSyncTimer.Interval = TimeSpan.FromSeconds(1); // Check every second
+        _volumeSyncTimer.Interval = TimeSpan.FromMilliseconds(VOLUME_SYNC_TIMER_INTERVAL_MS);
         _volumeSyncTimer.Tick += OnVolumeSyncTimerTick;
         _volumeSyncTimer.Start();
     }
@@ -183,7 +222,7 @@ public sealed partial class MiniVolumeWindow : Window
         var isMuted = _volumeManager.IsMuted();
         
         // Update slider if it doesn't match current system volume
-        if (Math.Abs(VolumeSlider.Value - currentVolume) > 0.5)
+        if (Math.Abs(VolumeSlider.Value - currentVolume) > VOLUME_TOLERANCE)
         {
             // Temporarily remove event handler to prevent feedback loop
             VolumeSlider.ValueChanged -= OnVolumeChanged;
@@ -199,25 +238,9 @@ public sealed partial class MiniVolumeWindow : Window
             MuteButton.Content = expectedButtonText;
         }
     }
+    #endregion
 
-    private void InitializeStartupMenuState()
-    {
-        // Check if app is currently set to run on startup and update menu item
-        RunOnStartupMenuItem.IsChecked = StartupManager.IsStartupEnabled();
-    }
-
-    private void OnRunOnStartupClicked(object sender, RoutedEventArgs e)
-    {
-        if (sender is ToggleMenuFlyoutItem menuItem)
-        {
-            var newState = menuItem.IsChecked;
-            var success = StartupManager.SetStartupEnabled(newState);
-            
-            // Verify the operation succeeded and update UI accordingly
-            menuItem.IsChecked = StartupManager.IsStartupEnabled();
-        }
-    }
-
+    #region Window Dragging Event Handlers
     private void OnPointerPressed(object sender, PointerRoutedEventArgs e)
     {
         var grid = sender as Grid;
@@ -258,4 +281,5 @@ public sealed partial class MiniVolumeWindow : Window
             grid?.ReleasePointerCapture(e.Pointer);
         }
     }
+    #endregion
 }
