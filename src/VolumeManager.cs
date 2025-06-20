@@ -38,11 +38,20 @@ public class VolumeManager : IDisposable
     /// </summary>
     public void SetVolume(int volumePercent)
     {
+        Logger.WriteInfo($"SetVolume called with: {volumePercent}%");
         EnsureEndpointCached();
-        if (_cachedEndpoint == null) return;
+        if (_cachedEndpoint == null) 
+        {
+            Logger.WriteError("SetVolume failed: No audio endpoint available");
+            return;
+        }
         
         var level = Math.Max(0, Math.Min(100, volumePercent)) / 100.0f;
-        _audioDeviceManager.SetMasterVolumeScalar(_cachedEndpoint, level);
+        var success = _audioDeviceManager.SetMasterVolumeScalar(_cachedEndpoint, level);
+        if (!success)
+        {
+            Logger.WriteError($"SetVolume failed - Level: {level:F2}");
+        }
         
         // Update cached value immediately
         _cachedVolume = volumePercent;
@@ -68,10 +77,19 @@ public class VolumeManager : IDisposable
     /// </summary>
     public void SetMute(bool mute)
     {
+        Logger.WriteInfo($"SetMute called with: {mute}");
         EnsureEndpointCached();
-        if (_cachedEndpoint == null) return;
+        if (_cachedEndpoint == null) 
+        {
+            Logger.WriteError("SetMute failed: No audio endpoint available");
+            return;
+        }
         
-        _audioDeviceManager.SetMuteState(_cachedEndpoint, mute);
+        var success = _audioDeviceManager.SetMuteState(_cachedEndpoint, mute);
+        if (!success)
+        {
+            Logger.WriteError($"SetMute failed");
+        }
         
         // Update cached value immediately
         _cachedMute = mute;
@@ -82,9 +100,11 @@ public class VolumeManager : IDisposable
     /// </summary>
     public void RefreshFromSystem()
     {
+        Logger.WriteInfo("RefreshFromSystem called");
         _cachedEndpoint = _audioDeviceManager.GetCurrentVolumeEndpoint();
         if (_cachedEndpoint == null) 
         {
+            Logger.WriteError("RefreshFromSystem: No audio endpoint available");
             _cachedVolume = null;
             _cachedMute = null;
             return;
@@ -92,9 +112,11 @@ public class VolumeManager : IDisposable
         
         var level = _audioDeviceManager.GetMasterVolumeScalar(_cachedEndpoint);
         _cachedVolume = level.HasValue ? (int)(level.Value * 100) : null;
+        Logger.WriteInfo($"RefreshFromSystem: Volume level = {_cachedVolume}%");
         
         var muteState = _audioDeviceManager.GetMuteState(_cachedEndpoint);
         _cachedMute = muteState ?? false;
+        Logger.WriteInfo($"RefreshFromSystem: Mute state = {_cachedMute}");
         
         _lastRefresh = DateTime.Now;
     }

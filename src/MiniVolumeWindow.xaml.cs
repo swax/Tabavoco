@@ -31,6 +31,7 @@ public sealed partial class MiniVolumeWindow : Window
     #region Constructor & Lifecycle
     public MiniVolumeWindow()
     {
+        Logger.WriteInfo("MiniVolumeWindow constructor started");
         InitializeComponent();
         SetupWindowHidden();
         
@@ -40,6 +41,7 @@ public sealed partial class MiniVolumeWindow : Window
         StartVolumeSyncTimer();
         InitializeStartupMenuState();
         this.Closed += OnWindowClosed;
+        Logger.WriteInfo("MiniVolumeWindow constructor completed");
     }
 
     private void OnWindowClosed(object sender, WindowEventArgs e)
@@ -196,11 +198,13 @@ public sealed partial class MiniVolumeWindow : Window
     #region Volume Management & Synchronization
     private void StartVolumeSyncTimer()
     {
+        Logger.WriteInfo("Starting volume sync timer");
         // Timer to periodically sync volume and mute state when user isn't interacting
         _volumeSyncTimer = new DispatcherTimer();
         _volumeSyncTimer.Interval = TimeSpan.FromMilliseconds(VOLUME_SYNC_TIMER_INTERVAL_MS);
         _volumeSyncTimer.Tick += OnVolumeSyncTimerTick;
         _volumeSyncTimer.Start();
+        Logger.WriteInfo($"Volume sync timer started with {VOLUME_SYNC_TIMER_INTERVAL_MS}ms interval");
     }
 
     private void OnVolumeSyncTimerTick(object? sender, object e)

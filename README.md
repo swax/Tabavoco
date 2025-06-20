@@ -33,6 +33,20 @@ dotnet build
 dotnet run
 ```
 
+## Packaging
+
+Build for distribution (WinUI 3 has compatibility issues with self-contained publishing):
+
+```bash
+dotnet.exe build -c Release
+```
+
+Output will be in `bin/x64/Release/net9.0-windows10.0.19041.0/win-x64/`
+
+The entire directory can be distributed, but requires .NET 9.0 Desktop Runtime on target machines.
+
+> **Note**: Self-contained publishing is not supported due to WinRT projection compatibility issues with WinUI 3.
+
 ## Architecture
 
 ### Key Components

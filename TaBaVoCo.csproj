@@ -17,6 +17,11 @@
         <RootNamespace>Tabavoco</RootNamespace>
         <EnableWindowsTargeting>true</EnableWindowsTargeting>
         
+        <!-- Preserve COM support for framework-dependent deployment -->
+        <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+        <TieredCompilation>false</TieredCompilation>
+        <PublishReadyToRun>false</PublishReadyToRun>
+        
         <!-- App Options -->
         <UseRidGraph>true</UseRidGraph>
         <Platforms>x64;x86;ARM64</Platforms>
