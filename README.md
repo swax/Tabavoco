@@ -13,6 +13,7 @@ A lightweight WinUI 3 volume control application that provides persistent, easil
 - **Minimal footprint** - No taskbar presence, small memory usage
 - **Right-click context menu** - Easy exit and run on startup option
 - **External sync** - Automatically detects and syncs with volume changes made by other applications
+- **Position persistence** - Remembers window position across application restarts
 
 ## Build & Run
 
@@ -44,31 +45,35 @@ src/
 ├── AudioDeviceManager.cs        # Low-level Windows Core Audio API COM interop wrapper
 ├── Win32WindowManager.cs        # Native window positioning and topmost management
 ├── StartupManager.cs            # Windows startup registry management
+├── ConfigurationService.cs      # JSON-based configuration management for app settings
 └── Logger.cs                    # Debug logging utility with file output
+appsettings.json                 # Application configuration (window position, etc.)
 ```
 
 ### Data Flow & Design
 1. **MiniVolumeWindow** owns a VolumeManager instance and disposes it on close
 2. **VolumeManager** caches volume/mute/endpoint state to avoid expensive COM calls
-3. **Periodic refresh** (1-second timer) syncs with external volume changes
-4. **Immediate updates** when user interacts for responsive UI
-5. **Separation of concerns**: UI → VolumeManager → AudioDeviceManager → COM APIs
+3. **ConfigurationService** manages JSON-based app settings (window position, etc.)
+4. **Periodic refresh** (1-second timer) syncs with external volume changes
+5. **Immediate updates** when user interacts for responsive UI
+6. **Separation of concerns**: UI → VolumeManager → AudioDeviceManager → COM APIs
 
 ### Technical Implementation
 - Windows Core Audio API (IAudioEndpointVolume) for direct system volume access
 - Win32 API calls ensure window stays above taskbar and doesn't appear in task switcher
 - Timer-based topmost enforcement overcomes Windows taskbar z-index changes
 - Pointer events enable drag-to-move functionality
+- JSON configuration system (Microsoft.Extensions.Configuration) for settings persistence
 - Polling approach used since Windows audio change events are complex
 
 ## Testing (Manual)
 
-- App starts at bottom-left
+- App starts at bottom-left (or last saved position)
 - App is initialized with current volume
 - Slider changes system volume 
 - Mute button toggles system mute 
 - Window stays above taskbar 
-- Dragging moves window
+- Dragging moves window and saves position
 - Right click to exit
 
 ## Development
