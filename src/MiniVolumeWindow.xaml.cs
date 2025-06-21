@@ -27,6 +27,7 @@ public sealed partial class MiniVolumeWindow : Window
     private bool _isUserInteracting = false;
     private readonly VolumeManager _volumeManager = new VolumeManager();
     private double _dpiScaleFactor = 1.0;
+    private readonly ConfigurationService _config = new ConfigurationService();
     #endregion
 
     #region Constructor & Lifecycle
@@ -213,11 +214,31 @@ public sealed partial class MiniVolumeWindow : Window
 
     private void SetInitialWindowPosition()
     {
-        // Position window at bottom left of screen
-        Win32WindowManager.PositionAtBottomLeft(this, POSITIONING_OFFSET_X, POSITIONING_OFFSET_Y);
+        // Check if we have saved position
+        var savedLeft = _config.WindowLeft;
+        var savedTop = _config.WindowTop;
+        
+        if (savedLeft > 0 && savedTop > 0)
+        {
+            // Use saved position
+            this.AppWindow.Move(new Windows.Graphics.PointInt32((int)savedLeft, (int)savedTop));
+        }
+        else
+        {
+            // Position window at bottom left of screen (default)
+            Win32WindowManager.PositionAtBottomLeft(this, POSITIONING_OFFSET_X, POSITIONING_OFFSET_Y);
+        }
         
         // Apply extended topmost style
         Win32WindowManager.ApplyTopmostStyle(this);
+    }
+
+    private void SaveWindowPosition()
+    {
+        var position = this.AppWindow.Position;
+        _config.WindowLeft = position.X;
+        _config.WindowTop = position.Y;
+        _config.Save();
     }
 
     private void StartTopmostTimer()
@@ -319,6 +340,7 @@ public sealed partial class MiniVolumeWindow : Window
             _isDragging = false;
             var grid = sender as Grid;
             grid?.ReleasePointerCapture(e.Pointer);
+            SaveWindowPosition();
         }
     }
     #endregion
