@@ -54,6 +54,15 @@
         <Content Include="Assets\Wide310x150Logo.scale-200.png" />
     </ItemGroup>
 
+    <!-- Include generated XAML files for C# Dev Kit IntelliSense -->
+    <ItemGroup  Condition="'$(DesignTimeBuild)' == 'true'">
+        <Compile Include="obj/x64/Debug/net9.0-windows10.0.19041.0/win-x64/src/**/*.cs">
+            <AutoGen>True</AutoGen>
+            <DesignTime>True</DesignTime>
+            <DependentUpon>%(Filename).xaml</DependentUpon>
+        </Compile>
+    </ItemGroup>
+
     <ItemGroup>
         <Compile Include="src\**\*.cs" />
         <ApplicationDefinition Include="src\App.xaml">
