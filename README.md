@@ -85,10 +85,10 @@ appsettings.json                 # Application configuration (window position, e
 
 ## Packaging
 
-Build for distribution: Self-Contained (~80 MB includes .NET 9 and Windows App SKD)
+Build for distribution: Self-Contained (~80 MB includes .NET 9 and Windows App SDK)
 
 ```bash
-dotnet publish -c Release -r win-x64 --self-contained -p:PublishTrimmed=false -p:WindowsAppSDKSelfContained=true
+dotnet publish -c Release -r win-x64
 ```
 
 Output will be in `bin/Release/net9.0-windows10.0.19041.0/win-x64/publish/`
