@@ -1,3 +1,4 @@
+using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -134,16 +135,27 @@ public sealed partial class MiniVolumeWindow : Window
         _volumeManager.SetVolume(volume);
     }
 
-    private void OnVolumeSliderPointerPressed(object sender, PointerRoutedEventArgs e)
+    private void OnVolumeSliderManipulationStarted(object sender, ManipulationStartedRoutedEventArgs e)
     {
         // User started interacting with volume slider
         _isUserInteracting = true;
     }
 
-    private void OnVolumeSliderPointerReleased(object sender, PointerRoutedEventArgs e)
+    private void OnVolumeSliderManipulationCompleted(object sender, ManipulationCompletedRoutedEventArgs e)
     {
         // User finished interacting with volume slider
         _isUserInteracting = false;
+        
+        // Play beep sound when slider manipulation is completed
+        try
+        {
+            // Play a 800Hz beep for 200ms
+            Console.Beep();
+        }
+        catch (Exception ex)
+        {
+            Logger.WriteError($"Failed to play beep sound: {ex.Message}");
+        }
     }
 
     private void OnVolumeSliderPointerEntered(object sender, PointerRoutedEventArgs e)

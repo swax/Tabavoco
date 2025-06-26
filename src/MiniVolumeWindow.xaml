@@ -34,8 +34,9 @@
                     Value="0"
                     VerticalAlignment="Center"
                     ValueChanged="OnVolumeChanged"
-                    PointerPressed="OnVolumeSliderPointerPressed"
-                    PointerReleased="OnVolumeSliderPointerReleased"
+                    ManipulationMode="TranslateX"
+                    ManipulationStarted="OnVolumeSliderManipulationStarted"
+                    ManipulationCompleted="OnVolumeSliderManipulationCompleted"
                     PointerEntered="OnVolumeSliderPointerEntered"
                     PointerExited="OnVolumeSliderPointerExited"/>
         </StackPanel>
