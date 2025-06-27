@@ -26,6 +26,12 @@ public static class Win32WindowManager
 
     [DllImport("user32.dll")]
     private static extern uint GetDpiForWindow(IntPtr hWnd);
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr GetForegroundWindow();
     #endregion
 
     #region Win32 Constants
@@ -42,6 +48,12 @@ public static class Win32WindowManager
     private const int WS_EX_TOPMOST = 0x00000008;
     private const int WS_EX_TOOLWINDOW = 0x00000080;
     private const int WS_EX_APPWINDOW = 0x00040000;
+    
+    // Media control constants
+    private const int WM_APPCOMMAND = 0x319;
+    private const int APPCOMMAND_MEDIA_PLAY_PAUSE = 14;
+    private const int APPCOMMAND_MEDIA_NEXTTRACK = 11;
+    private const int APPCOMMAND_MEDIA_PREVIOUSTRACK = 12;
     #endregion
 
     /// <summary>
@@ -109,4 +121,66 @@ public static class Win32WindowManager
     {
         return GetDpiForWindow(hwnd);
     }
+
+    #region Media Control Methods
+    /// <summary>
+    /// Sends a play/pause command to the foreground application via WM_APPCOMMAND
+    /// </summary>
+    public static bool SendMediaPlayPause()
+    {
+        try
+        {
+            var foregroundWindow = GetForegroundWindow();
+            var lParam = new IntPtr(APPCOMMAND_MEDIA_PLAY_PAUSE << 16);
+            SendMessage(foregroundWindow, WM_APPCOMMAND, IntPtr.Zero, lParam);
+            Logger.WriteInfo("WM_APPCOMMAND play/pause sent");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Logger.WriteError($"Failed to send WM_APPCOMMAND play/pause: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Sends a next track command to the foreground application via WM_APPCOMMAND
+    /// </summary>
+    public static bool SendMediaNextTrack()
+    {
+        try
+        {
+            var foregroundWindow = GetForegroundWindow();
+            var lParam = new IntPtr(APPCOMMAND_MEDIA_NEXTTRACK << 16);
+            SendMessage(foregroundWindow, WM_APPCOMMAND, IntPtr.Zero, lParam);
+            Logger.WriteInfo("WM_APPCOMMAND next track sent");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Logger.WriteError($"Failed to send WM_APPCOMMAND next track: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Sends a previous track command to the foreground application via WM_APPCOMMAND
+    /// </summary>
+    public static bool SendMediaPreviousTrack()
+    {
+        try
+        {
+            var foregroundWindow = GetForegroundWindow();
+            var lParam = new IntPtr(APPCOMMAND_MEDIA_PREVIOUSTRACK << 16);
+            SendMessage(foregroundWindow, WM_APPCOMMAND, IntPtr.Zero, lParam);
+            Logger.WriteInfo("WM_APPCOMMAND previous track sent");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Logger.WriteError($"Failed to send WM_APPCOMMAND previous track: {ex.Message}");
+            return false;
+        }
+    }
+    #endregion
 }

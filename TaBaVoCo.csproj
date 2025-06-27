@@ -29,8 +29,8 @@
         <AssemblyDescription>Taskbar Volume Control App</AssemblyDescription>
         <AssemblyCompany>John Marshall</AssemblyCompany>
         <AssemblyProduct>Tabavoco</AssemblyProduct>
-        <AssemblyVersion>1.1.0.0</AssemblyVersion>
-        <FileVersion>1.1.0.0</FileVersion>
+        <AssemblyVersion>1.2.0.0</AssemblyVersion>
+        <FileVersion>1.2.0.0</FileVersion>
         <AssemblyCopyright>Copyright © 2025 John Marshall</AssemblyCopyright>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
     </PropertyGroup>
