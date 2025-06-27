@@ -1,47 +1,4 @@
-# Build outputs (present in your project)
+.claude/
+.vs/
 bin/
 obj/
-
-# Visual Studio files
-.vs/
-*.user
-
-# Build artifacts in your project structure
-Debug/
-Release/
-x64/
-x86/
-ARM64/
-
-# .NET build files
-*.pdb
-*.dll
-*.exe
-*.log
-*.cache
-
-# NuGet files from obj/ folder
-project.assets.json
-project.nuget.cache
-*.nuget.dgspec.json
-*.nuget.g.props
-*.nuget.g.targets
-
-# Generated files
-*.GlobalUsings.g.cs
-intermediatexaml/
-ref/
-refint/
-
-# Publish profiles - keep these for build configuration
-# *.pubxml
-
-# Package files
-*.appx
-*.appxbundle
-*.msix
-*.msixbundle
-
-# Temporary files
-*.tmp
-*.temp
