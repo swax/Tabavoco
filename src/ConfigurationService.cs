@@ -28,6 +28,12 @@ public class ConfigurationService
         set => SetValue("WindowTop", value);
     }
 
+    public bool ShowMediaControls
+    {
+        get => GetValue<bool>("ShowMediaControls");
+        set => SetValue("ShowMediaControls", value);
+    }
+
     public void Save()
     {
         var json = System.Text.Json.JsonSerializer.Serialize(new
@@ -35,7 +41,8 @@ public class ConfigurationService
             WindowSettings = new
             {
                 WindowLeft = WindowLeft,
-                WindowTop = WindowTop
+                WindowTop = WindowTop,
+                ShowMediaControls = ShowMediaControls
             }
         }, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
         
@@ -55,6 +62,7 @@ public class ConfigurationService
         
         _values["WindowLeft"] = configuration.GetValue<double>("WindowSettings:WindowLeft");
         _values["WindowTop"] = configuration.GetValue<double>("WindowSettings:WindowTop");
+        _values["ShowMediaControls"] = configuration.GetValue<bool>("WindowSettings:ShowMediaControls");
     }
 
     private T GetValue<T>(string key)

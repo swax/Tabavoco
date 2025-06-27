@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
 using System;
+using System.Reflection;
 using Windows.Foundation;
 
 namespace Tabavoco;
@@ -12,6 +13,7 @@ public sealed partial class MiniVolumeWindow : Window
 {
     #region Constants
     private const int LOGICAL_WINDOW_WIDTH = 240; // Base width at 100% scale (300px at 125% = 240px logical)
+    private const int LOGICAL_WINDOW_WIDTH_WITH_MEDIA = 320; // Extended width with media controls
     private const int LOGICAL_WINDOW_HEIGHT = 40; // Base height at 100% scale (50px at 125% = 40px logical)
     private const int POSITIONING_OFFSET_X = 10;
     private const int POSITIONING_OFFSET_Y = 50;
@@ -38,11 +40,15 @@ public sealed partial class MiniVolumeWindow : Window
         InitializeComponent();
         SetupWindowHidden();
         
+        // Set app title with version in context menu
+        SetAppTitleWithVersion();
+        
         // Position window immediately after setup but before showing
         SetInitialWindowPosition();
         
         StartVolumeSyncTimer();
         InitializeStartupMenuState();
+        InitializeMediaControls();
         this.Closed += OnWindowClosed;
         Logger.WriteInfo("MiniVolumeWindow constructor completed");
     }
@@ -50,6 +56,7 @@ public sealed partial class MiniVolumeWindow : Window
     private void OnWindowClosed(object sender, WindowEventArgs e)
     {
         _volumeManager?.Dispose();
+        MediaControlsPanel?.Dispose();
     }
 
     public new void Activate()
@@ -57,6 +64,23 @@ public sealed partial class MiniVolumeWindow : Window
         // Window is already positioned in constructor, just show and activate
         this.AppWindow.Show();
         base.Activate();
+    }
+    #endregion
+
+    #region App Title & Version
+    private void SetAppTitleWithVersion()
+    {
+        try
+        {
+            var version = Assembly.GetExecutingAssembly().GetName().Version;
+            var majorMinor = $"{version?.Major}.{version?.Minor}";
+            AppTitleMenuItem.Text = $"Tabavoco {majorMinor}";
+        }
+        catch (Exception ex)
+        {
+            Logger.WriteError($"Failed to get version: {ex.Message}");
+            AppTitleMenuItem.Text = "Tabavoco";
+        }
     }
     #endregion
 
@@ -79,9 +103,7 @@ public sealed partial class MiniVolumeWindow : Window
         
         // Calculate DPI scale factor and set window size accordingly
         CalculateDpiScaleFactor();
-        var scaledWidth = (int)(LOGICAL_WINDOW_WIDTH * _dpiScaleFactor);
-        var scaledHeight = (int)(LOGICAL_WINDOW_HEIGHT * _dpiScaleFactor);
-        this.AppWindow.Resize(new Windows.Graphics.SizeInt32(scaledWidth, scaledHeight));
+        UpdateWindowSize();
         
         // Configure as tool window to hide from taskbar
         Win32WindowManager.ConfigureAsToolWindow(this);
@@ -122,6 +144,46 @@ public sealed partial class MiniVolumeWindow : Window
         Logger.WriteInfo($"Using fallback DPI scale factor: {_dpiScaleFactor}");
     }
 
+    private void UpdateWindowSize()
+    {
+        var baseWidth = _config.ShowMediaControls ? LOGICAL_WINDOW_WIDTH_WITH_MEDIA : LOGICAL_WINDOW_WIDTH;
+        var scaledWidth = (int)(baseWidth * _dpiScaleFactor);
+        var scaledHeight = (int)(LOGICAL_WINDOW_HEIGHT * _dpiScaleFactor);
+        this.AppWindow.Resize(new Windows.Graphics.SizeInt32(scaledWidth, scaledHeight));
+        Logger.WriteInfo($"Window resized to {scaledWidth}x{scaledHeight} (DPI: {_dpiScaleFactor}, Media Controls: {_config.ShowMediaControls})");
+    }
+    #endregion
+
+    #region Media Control Management
+    private void InitializeMediaControls()
+    {
+        Logger.WriteInfo("Initializing media controls");
+        
+        // Set initial visibility and menu state
+        var showMediaControls = _config.ShowMediaControls;
+        MediaControlsPanel.Visibility = showMediaControls ? Visibility.Visible : Visibility.Collapsed;
+        ShowMediaControlsMenuItem.IsChecked = showMediaControls;
+        
+        Logger.WriteInfo($"Media controls initialized - visible: {showMediaControls}");
+    }
+
+    private void OnShowMediaControlsClicked(object sender, RoutedEventArgs e)
+    {
+        if (sender is ToggleMenuFlyoutItem menuItem)
+        {
+            var showControls = menuItem.IsChecked;
+            _config.ShowMediaControls = showControls;
+            _config.Save();
+            
+            MediaControlsPanel.Visibility = showControls ? Visibility.Visible : Visibility.Collapsed;
+            UpdateWindowSize();
+            
+            Logger.WriteInfo($"Media controls visibility changed to: {showControls}");
+        }
+    }
+
+    #endregion
+
     #region Volume Control Event Handlers
     private void UpdateMuteButtonIcon()
     {
@@ -149,8 +211,8 @@ public sealed partial class MiniVolumeWindow : Window
         // Play beep sound when slider manipulation is completed
         try
         {
-            // Play a 800Hz beep for 200ms
-            Console.Beep();
+            // Kinda annoying
+            //Console.Beep();
         }
         catch (Exception ex)
         {
@@ -262,7 +324,6 @@ public sealed partial class MiniVolumeWindow : Window
         _topmostTimer.Tick += (s, e) => Win32WindowManager.ApplyTopmostStyle(this);
         _topmostTimer.Start();
     }
-    #endregion
 
     #region Volume Management & Synchronization
     private void StartVolumeSyncTimer()
@@ -309,6 +370,12 @@ public sealed partial class MiniVolumeWindow : Window
         if (currentButtonText != expectedButtonText)
         {
             MuteButton.Content = expectedButtonText;
+        }
+        
+        // Update media control button state if media controls are visible
+        if (_config.ShowMediaControls && MediaControlsPanel.Visibility == Visibility.Visible)
+        {
+            _ = Task.Run(async () => await MediaControlsPanel.RefreshMediaStateAsync());
         }
     }
     #endregion

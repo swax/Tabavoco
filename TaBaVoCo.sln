@@ -7,32 +7,14 @@ Project("{A2FD25FF-71D7-4C08-8FE2-B13D3551CAE5}") = "Tabavoco", "Tabavoco.csproj
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|x64 = Debug|x64
-		Debug|x86 = Debug|x86
-		Debug|ARM64 = Debug|ARM64
-		Release|x64 = Release|x64
-		Release|x86 = Release|x86
-		Release|ARM64 = Release|ARM64
+		Debug|AnyCPU = Debug|AnyCPU
+		Release|AnyCPU = Release|AnyCPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{E9B31C06-8326-4198-9EC1-555304A8D959}.Debug|ARM64.ActiveCfg = Debug|ARM64
-		{E9B31C06-8326-4198-9EC1-555304A8D959}.Debug|ARM64.Build.0 = Debug|ARM64
-		{E9B31C06-8326-4198-9EC1-555304A8D959}.Debug|ARM64.Deploy.0 = Debug|ARM64
-		{E9B31C06-8326-4198-9EC1-555304A8D959}.Debug|x64.ActiveCfg = Debug|x64
-		{E9B31C06-8326-4198-9EC1-555304A8D959}.Debug|x64.Build.0 = Debug|x64
-		{E9B31C06-8326-4198-9EC1-555304A8D959}.Debug|x64.Deploy.0 = Debug|x64
-		{E9B31C06-8326-4198-9EC1-555304A8D959}.Debug|x86.ActiveCfg = Debug|x86
-		{E9B31C06-8326-4198-9EC1-555304A8D959}.Debug|x86.Build.0 = Debug|x86
-		{E9B31C06-8326-4198-9EC1-555304A8D959}.Debug|x86.Deploy.0 = Debug|x86
-		{E9B31C06-8326-4198-9EC1-555304A8D959}.Release|ARM64.ActiveCfg = Release|ARM64
-		{E9B31C06-8326-4198-9EC1-555304A8D959}.Release|ARM64.Build.0 = Release|ARM64
-		{E9B31C06-8326-4198-9EC1-555304A8D959}.Release|ARM64.Deploy.0 = Release|ARM64
-		{E9B31C06-8326-4198-9EC1-555304A8D959}.Release|x64.ActiveCfg = Release|x64
-		{E9B31C06-8326-4198-9EC1-555304A8D959}.Release|x64.Build.0 = Release|x64
-		{E9B31C06-8326-4198-9EC1-555304A8D959}.Release|x64.Deploy.0 = Release|x64
-		{E9B31C06-8326-4198-9EC1-555304A8D959}.Release|x86.ActiveCfg = Release|x86
-		{E9B31C06-8326-4198-9EC1-555304A8D959}.Release|x86.Build.0 = Release|x86
-		{E9B31C06-8326-4198-9EC1-555304A8D959}.Release|x86.Deploy.0 = Release|x86
+		{E9B31C06-8326-4198-9EC1-555304A8D959}.Debug|AnyCPU.ActiveCfg = Debug|AnyCPU
+		{E9B31C06-8326-4198-9EC1-555304A8D959}.Debug|AnyCPU.Build.0 = Debug|AnyCPU
+		{E9B31C06-8326-4198-9EC1-555304A8D959}.Release|AnyCPU.ActiveCfg = Release|AnyCPU
+		{E9B31C06-8326-4198-9EC1-555304A8D959}.Release|AnyCPU.Build.0 = Release|AnyCPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
