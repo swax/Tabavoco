@@ -1,6 +1,7 @@
 using System;
+using Tabavoco.Utils;
 
-namespace Tabavoco;
+namespace Tabavoco.Services;
 
 /// <summary>
 /// High-level volume management interface that maintains cached state and uses AudioDeviceManager for COM interactions

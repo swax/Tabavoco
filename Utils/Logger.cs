@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Reflection;
 
-namespace Tabavoco;
+namespace Tabavoco.Utils;
 
 /// <summary>
 /// Simple logging utility that writes to both Debug output and a log file

@@ -2,8 +2,9 @@ using Microsoft.UI.Xaml;
 using System;
 using System.Runtime.InteropServices;
 using Windows.Graphics;
+using Tabavoco.Utils;
 
-namespace Tabavoco;
+namespace Tabavoco.Platform;
 
 /// <summary>
 /// Wraps Win32 API calls for window management, providing a clean interface

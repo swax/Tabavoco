@@ -6,8 +6,11 @@ using Microsoft.UI.Xaml.Input;
 using System;
 using System.Reflection;
 using Windows.Foundation;
+using Tabavoco.Services;
+using Tabavoco.Platform;
+using Tabavoco.Utils;
 
-namespace Tabavoco;
+namespace Tabavoco.Views;
 
 public sealed partial class MiniVolumeWindow : Window
 {
