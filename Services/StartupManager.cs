@@ -2,8 +2,9 @@ using System;
 using System.IO;
 using System.Reflection;
 using Microsoft.Win32;
+using Tabavoco.Utils;
 
-namespace Tabavoco;
+namespace Tabavoco.Services;
 
 /// <summary>
 /// Manages Windows startup registry entries for the application

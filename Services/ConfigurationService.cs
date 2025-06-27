@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace Tabavoco;
+namespace Tabavoco.Services;
 
 public class ConfigurationService
 {

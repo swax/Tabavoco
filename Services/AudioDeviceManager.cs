@@ -1,7 +1,8 @@
 using System;
 using System.Runtime.InteropServices;
+using Tabavoco.Utils;
 
-namespace Tabavoco;
+namespace Tabavoco.Services;
 
 /// <summary>
 /// Manages Windows Core Audio API COM interactions for audio device access

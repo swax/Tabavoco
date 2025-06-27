@@ -1,77 +1,67 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
-    <PropertyGroup>
-        <TargetFramework>net9.0-windows10.0.19041.0</TargetFramework>
-        <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
-        <OutputType>WinExe</OutputType>
+  <PropertyGroup>
+    <TargetFramework>net9.0-windows10.0.19041.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <OutputType>WinExe</OutputType>
 
-        <!-- WinUI 3 -->
-        <UseWinUI>true</UseWinUI>
-        <EnableMsixTooling>true</EnableMsixTooling>
-        <WindowsPackageType>None</WindowsPackageType>
+    <!-- WinUI 3 -->
+    <UseWinUI>true</UseWinUI>
+    <EnableMsixTooling>true</EnableMsixTooling>
+    <WindowsPackageType>None</WindowsPackageType>
 
-        <!-- Project Options -->
-        <Nullable>enable</Nullable>
-        <LangVersion>latest</LangVersion>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <EnableWindowsTargeting>true</EnableWindowsTargeting>
-        
-        <!-- App Options -->
-        <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
-        <EnableDefaultPageItems>false</EnableDefaultPageItems>
-        <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <!-- Project Options -->
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
 
-        <!-- Preserve COM support for framework-dependent deployment -->
-        <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
-        
-        <!-- Assembly Information -->
-        <AssemblyTitle>Tabavoco</AssemblyTitle>
-        <AssemblyDescription>Taskbar Volume Control App</AssemblyDescription>
-        <AssemblyCompany>John Marshall</AssemblyCompany>
-        <AssemblyProduct>Tabavoco</AssemblyProduct>
-        <AssemblyVersion>1.2.0.0</AssemblyVersion>
-        <FileVersion>1.2.0.0</FileVersion>
-        <AssemblyCopyright>Copyright © 2025 John Marshall</AssemblyCopyright>
-        <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    </PropertyGroup>
+    <!-- Preserve COM support for framework-dependent deployment -->
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
 
-    <!-- Release/Publish Options -->
-    <PropertyGroup Condition="'$(Configuration)'=='Release'">
-        <Platform>x64</Platform>
-        <PlatformTarget>x64</PlatformTarget>
-        <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
-        <PublishReadyToRun>True</PublishReadyToRun> <!-- ReadyToRun compilation for faster startup -->
-        <PublishSingleFile>False</PublishSingleFile> <!-- Bundles your app into one executable -->
-        <PublishTrimmed>False</PublishTrimmed> <!-- Trims output to used code, but can result in issues -->
-        <SelfContained>True</SelfContained> <!-- Include .Net runtinue -->
-        <WindowsAppSDKSelfContained>True</WindowsAppSDKSelfContained> <!-- Include Windows App SDK plus a million language folders -->
-    </PropertyGroup>
+    <!-- Assembly Information -->
+    <AssemblyTitle>Tabavoco</AssemblyTitle>
+    <AssemblyDescription>Taskbar Volume Control App</AssemblyDescription>
+    <AssemblyCompany>John Marshall</AssemblyCompany>
+    <AssemblyProduct>Tabavoco</AssemblyProduct>
+    <AssemblyVersion>1.2.0.0</AssemblyVersion>
+    <FileVersion>1.2.0.0</FileVersion>
+    <AssemblyCopyright>Copyright © 2025 John Marshall</AssemblyCopyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
 
-    <!-- Include generated XAML files for C# Dev Kit IntelliSense -->
-    <ItemGroup  Condition="'$(DesignTimeBuild)' == 'true'">
-        <Compile Include="obj/x64/Debug/net9.0-windows10.0.19041.0/win-x64/src/**/*.cs">
-            <AutoGen>True</AutoGen>
-            <DesignTime>True</DesignTime>
-            <DependentUpon>%(Filename).xaml</DependentUpon>
-        </Compile>
-    </ItemGroup>
+  <!-- Release/Publish Options -->
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <Platform>x64</Platform>
+    <PlatformTarget>x64</PlatformTarget>
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+    <!-- ReadyToRun compilation for faster startup -->
+    <PublishReadyToRun>True</PublishReadyToRun>
+    <!-- Bundles your app into one executable -->
+    <PublishSingleFile>False</PublishSingleFile>
+    <!-- Trims output to used code, but can result in issues -->
+    <PublishTrimmed>False</PublishTrimmed>
+    <!-- Include .Net runtinue -->
+    <SelfContained>True</SelfContained>
+    <!-- Include Windows App SDK plus a million language folders -->
+    <WindowsAppSDKSelfContained>True</WindowsAppSDKSelfContained>
+  </PropertyGroup>
 
-    <ItemGroup>
-        <Compile Include="src\**\*.cs" />
-        <ApplicationDefinition Include="src\App.xaml">
-            <Generator>MSBuild:Compile</Generator>
-        </ApplicationDefinition>
-        <Page Include="src\**\*.xaml" Exclude="src\App.xaml">
-            <Generator>MSBuild:Compile</Generator>
-        </Page>
-    </ItemGroup>
+  <!-- Include generated XAML files for C# Dev Kit IntelliSense -->
+  <ItemGroup  Condition="'$(DesignTimeBuild)' == 'true'">
+    <Compile Include="$(IntermediateOutputPath)Views/**/*.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>%(Filename).xaml</DependentUpon>
+    </Compile>
+  </ItemGroup>
 
-    <ItemGroup>
-        <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.6" />
-        <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.6" />
-        <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.6" />
-        <PackageReference Include="Microsoft.Web.WebView2" Version="1.*" />
-        <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.*" />
-        <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.*" />
-    </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.6" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.6" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.6" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.*" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.*" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.*" />
+  </ItemGroup>
 </Project>

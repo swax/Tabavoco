@@ -1,8 +1,9 @@
 using System;
 using System.Threading.Tasks;
 using Windows.Media.Control;
+using Tabavoco.Utils;
 
-namespace Tabavoco;
+namespace Tabavoco.Platform;
 
 /// <summary>
 /// Direct Windows SMTC API wrapper - stateless, async-heavy, provides detailed media info.

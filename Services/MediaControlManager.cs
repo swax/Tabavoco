@@ -1,8 +1,10 @@
 using System;
 using System.Threading.Tasks;
 using Windows.Media.Control;
+using Tabavoco.Platform;
+using Tabavoco.Utils;
 
-namespace Tabavoco;
+namespace Tabavoco.Services;
 
 /// <summary>
 /// High-level media control service - fast Win32 WM_APPCOMMAND primary, SMTC fallback.

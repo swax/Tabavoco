@@ -1,5 +1,7 @@
 global using Microsoft.UI.Xaml;
 global using Microsoft.UI.Xaml.Controls;
+using Tabavoco.Views;
+using Tabavoco.Utils;
 
 namespace Tabavoco
 {
