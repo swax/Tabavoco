@@ -38,25 +38,32 @@ dotnet run
 
 ### Project Structure
 ```
-src/
-├── App.xaml(.cs)                # Application entry point and WinUI 3 setup
-├── MiniVolumeWindow.xaml(.cs)   # Main UI window with volume slider and event handling
-├── VolumeManager.cs             # High-level volume control API with caching layer
-├── AudioDeviceManager.cs        # Low-level Windows Core Audio API COM interop wrapper
-├── Win32WindowManager.cs        # Native window positioning and topmost management
-├── StartupManager.cs            # Windows startup registry management
-├── ConfigurationService.cs      # JSON-based configuration management for app settings
-└── Logger.cs                    # Debug logging utility with file output
-appsettings.json                 # Application configuration (window position, etc.)
+├── App.xaml(.cs)                           # Application entry point and WinUI 3 setup
+├── Views/
+│   ├── MiniVolumeWindow.xaml(.cs)          # Main UI window with volume slider
+│   └── MediaControlsUserControl.xaml(.cs)  # Media control buttons (play/pause/etc)
+├── Services/
+│   ├── VolumeManager.cs                    # High-level volume control API with caching
+│   ├── AudioDeviceManager.cs               # Windows Core Audio API COM interop wrapper
+│   ├── MediaControlManager.cs              # System Media Transport Controls integration
+│   ├── ConfigurationService.cs             # JSON-based configuration management
+│   └── StartupManager.cs                   # Windows startup registry management
+├── Platform/
+│   ├── Win32WindowManager.cs               # Native window positioning and topmost management
+│   └── SmtcApiWrapper.cs                   # System Media Transport Controls wrapper
+├── Utils/
+│   └── Logger.cs                           # Debug logging utility with file output
+└── appsettings.json                        # Application configuration (window position, etc.)
 ```
 
 ### Data Flow & Design
 1. **MiniVolumeWindow** owns a VolumeManager instance and disposes it on close
 2. **VolumeManager** caches volume/mute/endpoint state to avoid expensive COM calls
-3. **ConfigurationService** manages JSON-based app settings (window position, etc.)
-4. **Periodic refresh** (1-second timer) syncs with external volume changes
-5. **Immediate updates** when user interacts for responsive UI
-6. **Separation of concerns**: UI → VolumeManager → AudioDeviceManager → COM APIs
+3. **MediaControlManager** handles system media transport controls (play/pause/next/previous)
+4. **ConfigurationService** manages JSON-based app settings (window position, etc.)
+5. **Periodic refresh** (1-second timer) syncs with external volume changes
+6. **Immediate updates** when user interacts for responsive UI
+7. **Separation of concerns**: UI → Services → Platform APIs → COM/Win32 APIs
 
 ### Technical Implementation
 - Windows Core Audio API (IAudioEndpointVolume) for direct system volume access

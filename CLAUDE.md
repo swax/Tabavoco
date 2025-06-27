@@ -14,7 +14,7 @@ dotnet build
 dotnet run
 
 # Publish for distribution (self-contained, ~80MB)
-dotnet publish -c Release -r win-x64 --self-contained -p:PublishTrimmed=false -p:WindowsAppSDKSelfContained=true
+dotnet publish -c Release -r win-x64
 ```
 
 **Critical**: Must use `PublishTrimmed=false` to preserve COM interop functionality for Windows Core Audio API.
@@ -25,13 +25,26 @@ WinUI 3 application providing persistent volume control overlay. Uses layered ar
 
 ### Core Components & Data Flow
 
+**Application Layer:**
 1. **App.xaml.cs** - Application entry with single-instance checking and global exception handling
-2. **MiniVolumeWindow** - Main UI that owns VolumeManager and handles all user interactions
-3. **VolumeManager** - High-level API that caches volume/mute state, uses AudioDeviceManager for COM calls
-4. **AudioDeviceManager** - Direct Windows Core Audio API COM wrapper using IAudioEndpointVolume
-5. **Win32WindowManager** - Native Win32 API calls for topmost positioning and tool window behavior
-6. **ConfigurationService** - JSON-based settings persistence using Microsoft.Extensions.Configuration
-7. **StartupManager** - Windows registry management for run-on-startup functionality
+
+**Views Layer:**
+2. **Views/MiniVolumeWindow** - Main UI that owns VolumeManager and handles all user interactions
+3. **Views/MediaControlsUserControl** - Media control buttons (play/pause/next/previous) with SMTC integration
+
+**Services Layer:**
+4. **Services/VolumeManager** - High-level API that caches volume/mute state, uses AudioDeviceManager for COM calls
+5. **Services/AudioDeviceManager** - Direct Windows Core Audio API COM wrapper using IAudioEndpointVolume
+6. **Services/MediaControlManager** - System Media Transport Controls integration for media playback control
+7. **Services/ConfigurationService** - JSON-based settings persistence using Microsoft.Extensions.Configuration
+8. **Services/StartupManager** - Windows registry management for run-on-startup functionality
+
+**Platform Layer:**
+9. **Platform/Win32WindowManager** - Native Win32 API calls for topmost positioning and tool window behavior
+10. **Platform/SmtcApiWrapper** - System Media Transport Controls wrapper for media transport events
+
+**Utils Layer:**
+11. **Utils/Logger** - Debug logging utility with file output and configurable log levels
 
 ### Key Implementation Patterns
 
@@ -73,6 +86,13 @@ WinUI 3 application providing persistent volume control overlay. Uses layered ar
 - _isUserInteracting flag prevents feedback loops during manual volume changes
 - Pointer events handle drag-to-move with position saving
 - Context menu provides exit and startup toggle functionality
+- MediaControlsUserControl provides play/pause/next/previous buttons with SMTC integration
+
+**Media Control Integration**:
+- System Media Transport Controls (SMTC) for global media playback control
+- MediaControlManager coordinates between UI and system media sessions
+- SmtcApiWrapper provides clean interface to Windows media transport APIs
+- Supports play/pause/next/previous commands sent to active media applications
 
 ## Important Technical Details
 
