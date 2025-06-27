@@ -15,7 +15,11 @@ A lightweight WinUI 3 volume control application that provides persistent, easil
 - **External sync** - Automatically detects and syncs with volume changes made by other applications
 - **Position persistence** - Remembers window position across application restarts
 
-## Build & Run
+## Installation
+
+Download the latest release from the [releases page](https://github.com/swax/Tabavoco/releases), unzip the file, and run `tabavoco.exe`.
+
+## Build from Source
 
 ### Requirements
 - .NET 9.0
