@@ -57,10 +57,53 @@ public static class Win32WindowManager
         // Standard WinUI 3 IsAlwaysOnTop doesn't guarantee positioning above taskbar
         var exStyle = NativeMethods.GetWindowLongPtr(hwnd, NativeMethods.GWL_EXSTYLE);
         NativeMethods.SetWindowLongPtr(hwnd, NativeMethods.GWL_EXSTYLE,
-            (exStyle | NativeMethods.WS_EX_TOPMOST | NativeMethods.WS_EX_TOOLWINDOW) & ~NativeMethods.WS_EX_APPWINDOW);
+            (exStyle | NativeMethods.WS_EX_TOPMOST | NativeMethods.WS_EX_TOOLWINDOW | NativeMethods.WS_EX_NOACTIVATE) & ~NativeMethods.WS_EX_APPWINDOW);
 
         NativeMethods.SetWindowPos(hwnd, (IntPtr)NativeMethods.HWND_TOPMOST, 0, 0, 0, 0,
                      NativeMethods.SWP_NOACTIVATE | NativeMethods.SWP_NOSIZE | NativeMethods.SWP_NOMOVE);
+    }
+
+    /// <summary>
+    /// Installs WinEvent hooks that reactively re-assert topmost when another window
+    /// takes foreground or z-order changes. Returns a handle that must be unhooked on shutdown.
+    /// The delegate must be stored by the caller to prevent GC collection.
+    /// </summary>
+    internal static (IntPtr foregroundHook, IntPtr reorderHook, NativeMethods.WinEventDelegate del) InstallTopmostHook(Window window)
+    {
+        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
+
+        NativeMethods.WinEventDelegate callback = (hWinEventHook, eventType, eventHwnd, idObject, idChild, dwEventThread, dwmsEventTime) =>
+        {
+            // Only react to events from other windows
+            if (eventHwnd == hwnd)
+                return;
+
+            NativeMethods.SetWindowPos(hwnd, (IntPtr)NativeMethods.HWND_TOPMOST, 0, 0, 0, 0,
+                NativeMethods.SWP_NOACTIVATE | NativeMethods.SWP_NOSIZE | NativeMethods.SWP_NOMOVE);
+        };
+
+        var foregroundHook = NativeMethods.SetWinEventHook(
+            NativeMethods.EVENT_SYSTEM_FOREGROUND, NativeMethods.EVENT_SYSTEM_FOREGROUND,
+            IntPtr.Zero, callback, 0, 0,
+            NativeMethods.WINEVENT_OUTOFCONTEXT | NativeMethods.WINEVENT_SKIPOWNPROCESS);
+
+        var reorderHook = NativeMethods.SetWinEventHook(
+            NativeMethods.EVENT_OBJECT_REORDER, NativeMethods.EVENT_OBJECT_REORDER,
+            IntPtr.Zero, callback, 0, 0,
+            NativeMethods.WINEVENT_OUTOFCONTEXT | NativeMethods.WINEVENT_SKIPOWNPROCESS);
+
+        return (foregroundHook, reorderHook, callback);
+    }
+
+    /// <summary>
+    /// Unhooks previously installed WinEvent hooks.
+    /// </summary>
+    public static void UninstallTopmostHook(IntPtr foregroundHook, IntPtr reorderHook)
+    {
+        if (foregroundHook != IntPtr.Zero)
+            NativeMethods.UnhookWinEvent(foregroundHook);
+        if (reorderHook != IntPtr.Zero)
+            NativeMethods.UnhookWinEvent(reorderHook);
     }
 
     /// <summary>

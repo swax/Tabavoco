@@ -20,7 +20,6 @@ public sealed partial class MiniVolumeWindow : Window
     private const int LOGICAL_WINDOW_HEIGHT = 40; // Base height at 100% scale (50px at 125% = 40px logical)
     private const int POSITIONING_OFFSET_X = 4;
     private const int POSITIONING_OFFSET_Y = 4;
-    private const int TOPMOST_TIMER_INTERVAL_MS = 500;
     private const int VOLUME_SYNC_TIMER_INTERVAL_MS = 1000;
     private const double VOLUME_TOLERANCE = 0.5;
     #endregion
@@ -28,7 +27,9 @@ public sealed partial class MiniVolumeWindow : Window
     #region Fields
     private bool _isDragging = false;
     private Point _lastPointerPosition;
-    private DispatcherTimer _topmostTimer = new DispatcherTimer();
+    private IntPtr _foregroundHook;
+    private IntPtr _reorderHook;
+    private NativeMethods.WinEventDelegate? _topmostHookDelegate;
     private DispatcherTimer _volumeSyncTimer = new DispatcherTimer();
     private bool _isUserInteracting = false;
     private readonly VolumeManager _volumeManager = new VolumeManager();
@@ -59,6 +60,8 @@ public sealed partial class MiniVolumeWindow : Window
 
     private void OnWindowClosed(object sender, WindowEventArgs e)
     {
+        Win32WindowManager.UninstallTopmostHook(_foregroundHook, _reorderHook);
+        _topmostHookDelegate = null;
         _trayIcon?.Dispose();
         _volumeManager?.Dispose();
         MediaControlsPanel?.Dispose();
@@ -113,8 +116,8 @@ public sealed partial class MiniVolumeWindow : Window
         // Configure as tool window to hide from taskbar
         Win32WindowManager.ConfigureAsToolWindow(this);
         
-        // Start timer to continuously enforce topmost status
-        StartTopmostTimer();
+        // Install WinEvent hooks to reactively enforce topmost when z-order changes
+        (_foregroundHook, _reorderHook, _topmostHookDelegate) = Win32WindowManager.InstallTopmostHook(this);
     }
 
     private void CalculateDpiScaleFactor()
@@ -358,15 +361,6 @@ public sealed partial class MiniVolumeWindow : Window
         _config.Save();
     }
 
-    private void StartTopmostTimer()
-    {
-        // Timer continuously enforces topmost status because Windows taskbar 
-        // actively changes our app's z-index when the taskbar is clicked
-        _topmostTimer = new DispatcherTimer();
-        _topmostTimer.Interval = TimeSpan.FromMilliseconds(TOPMOST_TIMER_INTERVAL_MS);
-        _topmostTimer.Tick += (s, e) => Win32WindowManager.ApplyTopmostStyle(this);
-        _topmostTimer.Start();
-    }
 
     #region Volume Management & Synchronization
     private void StartVolumeSyncTimer()
