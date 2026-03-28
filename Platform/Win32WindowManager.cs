@@ -82,13 +82,15 @@ public static class Win32WindowManager
     }
 
     /// <summary>
-    /// Positions the window at the bottom left of the primary monitor (overlays taskbar)
+    /// Positions the window at the bottom left of the primary monitor (overlays taskbar).
+    /// Padding is measured from the window's edges to the screen edges.
     /// </summary>
-    public static void PositionAtBottomLeft(Window window, int offsetX = 10, int offsetY = 50)
+    public static void PositionAtBottomLeft(Window window, int paddingLeft = 8, int paddingBottom = 8)
     {
         var bounds = GetPrimaryMonitorBounds();
-        var x = bounds.Left + offsetX;
-        var y = bounds.Bottom - offsetY;
+        var windowHeight = window.AppWindow.Size.Height;
+        var x = bounds.Left + paddingLeft;
+        var y = bounds.Bottom - windowHeight - paddingBottom;
 
         window.AppWindow.Move(new PointInt32(x, y));
     }

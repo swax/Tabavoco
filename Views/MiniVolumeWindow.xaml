@@ -11,7 +11,6 @@
                 <MenuFlyoutItem x:Name="AppTitleMenuItem" IsEnabled="False"/>
                 <MenuFlyoutSeparator/>
                 <ToggleMenuFlyoutItem x:Name="ShowMediaControlsMenuItem" Text="Show Media Controls" Click="OnShowMediaControlsClicked"/>
-                <ToggleMenuFlyoutItem x:Name="RunOnStartupMenuItem" Text="Run on Startup" Click="OnRunOnStartupClicked"/>
                 <MenuFlyoutSeparator/>
                 <MenuFlyoutItem Text="Exit" Click="OnExitClicked"/>
             </MenuFlyout>

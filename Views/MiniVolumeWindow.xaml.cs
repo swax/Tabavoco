@@ -18,8 +18,8 @@ public sealed partial class MiniVolumeWindow : Window
     private const int LOGICAL_WINDOW_WIDTH = 240; // Base width at 100% scale (300px at 125% = 240px logical)
     private const int LOGICAL_WINDOW_WIDTH_WITH_MEDIA = 320; // Extended width with media controls
     private const int LOGICAL_WINDOW_HEIGHT = 40; // Base height at 100% scale (50px at 125% = 40px logical)
-    private const int POSITIONING_OFFSET_X = 10;
-    private const int POSITIONING_OFFSET_Y = 50;
+    private const int POSITIONING_OFFSET_X = 4;
+    private const int POSITIONING_OFFSET_Y = 4;
     private const int TOPMOST_TIMER_INTERVAL_MS = 500;
     private const int VOLUME_SYNC_TIMER_INTERVAL_MS = 1000;
     private const double VOLUME_TOLERANCE = 0.5;
@@ -51,7 +51,6 @@ public sealed partial class MiniVolumeWindow : Window
         SetInitialWindowPosition();
         
         StartVolumeSyncTimer();
-        InitializeStartupMenuState();
         InitializeMediaControls();
         InitializeTrayIcon();
         this.Closed += OnWindowClosed;
@@ -196,6 +195,15 @@ public sealed partial class MiniVolumeWindow : Window
         try
         {
             _trayIcon = new TrayIconManager();
+            _trayIcon.ResetPositionRequested += () =>
+            {
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    Win32WindowManager.PositionAtBottomLeft(this, POSITIONING_OFFSET_X, POSITIONING_OFFSET_Y);
+                    Win32WindowManager.ApplyTopmostStyle(this);
+                    SaveWindowPosition();
+                });
+            };
             _trayIcon.ExitRequested += () =>
             {
                 DispatcherQueue.TryEnqueue(() => Application.Current.Exit());
@@ -312,23 +320,6 @@ public sealed partial class MiniVolumeWindow : Window
         Application.Current.Exit();
     }
 
-    private void InitializeStartupMenuState()
-    {
-        // Check if app is currently set to run on startup and update menu item
-        RunOnStartupMenuItem.IsChecked = StartupManager.IsStartupEnabled();
-    }
-
-    private void OnRunOnStartupClicked(object sender, RoutedEventArgs e)
-    {
-        if (sender is ToggleMenuFlyoutItem menuItem)
-        {
-            var newState = menuItem.IsChecked;
-            var success = StartupManager.SetStartupEnabled(newState);
-            
-            // Verify the operation succeeded and update UI accordingly
-            menuItem.IsChecked = StartupManager.IsStartupEnabled();
-        }
-    }
     #endregion
 
 
