@@ -34,6 +34,7 @@ public sealed partial class MiniVolumeWindow : Window
     private readonly VolumeManager _volumeManager = new VolumeManager();
     private double _dpiScaleFactor = 1.0;
     private readonly ConfigurationService _config = new ConfigurationService();
+    private TrayIconManager? _trayIcon;
     #endregion
 
     #region Constructor & Lifecycle
@@ -52,12 +53,14 @@ public sealed partial class MiniVolumeWindow : Window
         StartVolumeSyncTimer();
         InitializeStartupMenuState();
         InitializeMediaControls();
+        InitializeTrayIcon();
         this.Closed += OnWindowClosed;
         Logger.WriteInfo("MiniVolumeWindow constructor completed");
     }
 
     private void OnWindowClosed(object sender, WindowEventArgs e)
     {
+        _trayIcon?.Dispose();
         _volumeManager?.Dispose();
         MediaControlsPanel?.Dispose();
     }
@@ -185,6 +188,25 @@ public sealed partial class MiniVolumeWindow : Window
         }
     }
 
+    #endregion
+
+    #region Tray Icon
+    private void InitializeTrayIcon()
+    {
+        try
+        {
+            _trayIcon = new TrayIconManager();
+            _trayIcon.ExitRequested += () =>
+            {
+                DispatcherQueue.TryEnqueue(() => Application.Current.Exit());
+            };
+            Logger.WriteInfo("Tray icon initialized");
+        }
+        catch (Exception ex)
+        {
+            Logger.WriteError($"Failed to initialize tray icon: {ex.Message}");
+        }
+    }
     #endregion
 
     #region Volume Control Event Handlers
