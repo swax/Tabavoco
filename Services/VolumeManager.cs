@@ -11,13 +11,18 @@ namespace Tabavoco.Services;
 public class VolumeManager : IDisposable
 {
     private readonly AudioDeviceManager _audioDeviceManager = new AudioDeviceManager();
-    
+
     // Cache for volume, mute state, and endpoint
     private int? _cachedVolume = null;
     private bool? _cachedMute = null;
     private AudioDeviceManager.IAudioEndpointVolume? _cachedEndpoint = null;
     private DateTime _lastRefresh = DateTime.MinValue;
-    
+
+    public VolumeManager()
+    {
+        RefreshFromSystem();
+    }
+
 
     /// <summary>
     /// Gets the current cached volume as a percentage (0-100)
