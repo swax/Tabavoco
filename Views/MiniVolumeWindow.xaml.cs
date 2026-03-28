@@ -315,15 +315,16 @@ public sealed partial class MiniVolumeWindow : Window
         // Check if we have saved position
         var savedLeft = _config.WindowLeft;
         var savedTop = _config.WindowTop;
-        
-        if (savedLeft > 0 && savedTop > 0)
+
+        if (savedLeft > 0 && savedTop > 0 &&
+            Win32WindowManager.IsPositionOnAnyMonitor((int)savedLeft, (int)savedTop))
         {
-            // Use saved position
+            // Use saved position (validated to be on a connected monitor)
             this.AppWindow.Move(new Windows.Graphics.PointInt32((int)savedLeft, (int)savedTop));
         }
         else
         {
-            // Position window at bottom left of screen (default)
+            // Position window at bottom left of primary monitor (default)
             Win32WindowManager.PositionAtBottomLeft(this, POSITIONING_OFFSET_X, POSITIONING_OFFSET_Y);
         }
         

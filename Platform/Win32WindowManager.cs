@@ -33,6 +33,37 @@ public static class Win32WindowManager
 
     [DllImport("user32.dll")]
     private static extern IntPtr GetForegroundWindow();
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr MonitorFromPoint(POINT pt, uint dwFlags);
+
+    [DllImport("user32.dll", CharSet = CharSet.Auto)]
+    private static extern bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFO lpmi);
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct POINT
+    {
+        public int X;
+        public int Y;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct RECT
+    {
+        public int Left;
+        public int Top;
+        public int Right;
+        public int Bottom;
+    }
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+    private struct MONITORINFO
+    {
+        public int cbSize;
+        public RECT rcMonitor;
+        public RECT rcWork;
+        public uint dwFlags;
+    }
     #endregion
 
     #region Win32 Constants
@@ -50,6 +81,10 @@ public static class Win32WindowManager
     private static readonly IntPtr WS_EX_TOOLWINDOW = 0x00000080;
     private static readonly IntPtr WS_EX_APPWINDOW = 0x00040000;
     
+    // Monitor constants
+    private const uint MONITOR_DEFAULTTOPRIMARY = 1;
+    private const uint MONITOR_DEFAULTTONEAREST = 2;
+
     // Media control constants
     private const int WM_APPCOMMAND = 0x319;
     private const int APPCOMMAND_MEDIA_PLAY_PAUSE = 14;
@@ -58,13 +93,42 @@ public static class Win32WindowManager
     #endregion
 
     /// <summary>
-    /// Gets the screen dimensions
+    /// Gets the full bounds of the primary monitor (includes taskbar area)
+    /// </summary>
+    private static RECT GetPrimaryMonitorBounds()
+    {
+        var point = new POINT { X = 0, Y = 0 };
+        var hMonitor = MonitorFromPoint(point, MONITOR_DEFAULTTOPRIMARY);
+        var info = new MONITORINFO { cbSize = Marshal.SizeOf<MONITORINFO>() };
+        GetMonitorInfo(hMonitor, ref info);
+        return info.rcMonitor;
+    }
+
+    /// <summary>
+    /// Gets the screen dimensions of the primary monitor
     /// </summary>
     public static (int width, int height) GetScreenDimensions()
     {
-        var width = (int)GetSystemMetrics(SM_CXSCREEN);
-        var height = (int)GetSystemMetrics(SM_CYSCREEN);
-        return (width, height);
+        var bounds = GetPrimaryMonitorBounds();
+        return (bounds.Right - bounds.Left, bounds.Bottom - bounds.Top);
+    }
+
+    /// <summary>
+    /// Checks whether a given screen position is visible on any connected monitor.
+    /// Returns false if the point is off-screen (e.g. a monitor was disconnected).
+    /// </summary>
+    public static bool IsPositionOnAnyMonitor(int x, int y)
+    {
+        var point = new POINT { X = x, Y = y };
+        var hMonitor = MonitorFromPoint(point, MONITOR_DEFAULTTONEAREST);
+        var info = new MONITORINFO { cbSize = Marshal.SizeOf<MONITORINFO>() };
+        if (!GetMonitorInfo(hMonitor, ref info))
+            return false;
+
+        // MonitorFromPoint with DEFAULTTONEAREST always returns a monitor,
+        // so check if the point actually falls within that monitor's bounds
+        return x >= info.rcMonitor.Left && x < info.rcMonitor.Right &&
+               y >= info.rcMonitor.Top && y < info.rcMonitor.Bottom;
     }
 
     /// <summary>
@@ -96,14 +160,14 @@ public static class Win32WindowManager
     }
 
     /// <summary>
-    /// Positions the window at the bottom left of the screen with specified offset
+    /// Positions the window at the bottom left of the primary monitor (overlays taskbar)
     /// </summary>
     public static void PositionAtBottomLeft(Window window, int offsetX = 10, int offsetY = 50)
     {
-        var (_, screenHeight) = GetScreenDimensions();
-        var x = offsetX;
-        var y = screenHeight - offsetY;
-        
+        var bounds = GetPrimaryMonitorBounds();
+        var x = bounds.Left + offsetX;
+        var y = bounds.Bottom - offsetY;
+
         window.AppWindow.Move(new PointInt32(x, y));
     }
 
