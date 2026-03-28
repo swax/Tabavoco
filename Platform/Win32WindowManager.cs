@@ -20,10 +20,10 @@ public static class Win32WindowManager
     private static extern IntPtr GetSystemMetrics(int nIndex);
 
     [DllImport("user32.dll")]
-    private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
+    private static extern IntPtr GetWindowLongPtr(IntPtr hWnd, int nIndex);
 
     [DllImport("user32.dll")]
-    private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+    private static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
 
     [DllImport("user32.dll")]
     private static extern uint GetDpiForWindow(IntPtr hWnd);
@@ -45,10 +45,10 @@ public static class Win32WindowManager
     private const int SM_CYSCREEN = 1;
     private const int GWL_STYLE = -16;
     private const int GWL_EXSTYLE = -20;
-    private const int WS_SYSMENU = 0x80000;
-    private const int WS_EX_TOPMOST = 0x00000008;
-    private const int WS_EX_TOOLWINDOW = 0x00000080;
-    private const int WS_EX_APPWINDOW = 0x00040000;
+    private static readonly IntPtr WS_SYSMENU = 0x80000;
+    private static readonly IntPtr WS_EX_TOPMOST = 0x00000008;
+    private static readonly IntPtr WS_EX_TOOLWINDOW = 0x00000080;
+    private static readonly IntPtr WS_EX_APPWINDOW = 0x00040000;
     
     // Media control constants
     private const int WM_APPCOMMAND = 0x319;
@@ -73,10 +73,10 @@ public static class Win32WindowManager
     public static void ConfigureAsToolWindow(Window window)
     {
         var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
-        var exStyle = GetWindowLong(hwnd, GWL_EXSTYLE);
-        
+        var exStyle = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
+
         // Set as tool window and remove from taskbar
-        SetWindowLong(hwnd, GWL_EXSTYLE, (exStyle | WS_EX_TOOLWINDOW) & ~WS_EX_APPWINDOW);
+        SetWindowLongPtr(hwnd, GWL_EXSTYLE, (exStyle | WS_EX_TOOLWINDOW) & ~WS_EX_APPWINDOW);
     }
 
     /// <summary>
@@ -88,8 +88,8 @@ public static class Win32WindowManager
         
         // Dual approach: Extended style is more persistent, SetWindowPos has immediate effect
         // Standard WinUI 3 IsAlwaysOnTop doesn't guarantee positioning above taskbar
-        var exStyle = GetWindowLong(hwnd, GWL_EXSTYLE);
-        SetWindowLong(hwnd, GWL_EXSTYLE, (exStyle | WS_EX_TOPMOST | WS_EX_TOOLWINDOW) & ~WS_EX_APPWINDOW);
+        var exStyle = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
+        SetWindowLongPtr(hwnd, GWL_EXSTYLE, (exStyle | WS_EX_TOPMOST | WS_EX_TOOLWINDOW) & ~WS_EX_APPWINDOW);
         
         SetWindowPos(hwnd, (IntPtr)HWND_TOPMOST, 0, 0, 0, 0, 
                      SWP_NOACTIVATE | SWP_NOSIZE | SWP_NOMOVE);
