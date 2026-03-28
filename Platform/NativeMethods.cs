@@ -74,6 +74,13 @@ internal static class NativeMethods
 
     [DllImport("user32.dll")]
     internal static extern bool DestroyIcon(IntPtr hIcon);
+
+    [DllImport("user32.dll")]
+    internal static extern IntPtr SetWinEventHook(uint eventMin, uint eventMax, IntPtr hmodWinEventProc,
+        WinEventDelegate lpfnWinEventProc, uint idProcess, uint idThread, uint dwFlags);
+
+    [DllImport("user32.dll")]
+    internal static extern bool UnhookWinEvent(IntPtr hWinEventHook);
     #endregion
 
     #region shell32.dll
@@ -171,6 +178,8 @@ internal static class NativeMethods
 
     #region Delegates
     internal delegate IntPtr WndProcDelegate(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+    internal delegate void WinEventDelegate(IntPtr hWinEventHook, uint eventType, IntPtr hwnd,
+        int idObject, int idChild, uint dwEventThread, uint dwmsEventTime);
     #endregion
 
     #region Constants — Window Styles
@@ -179,6 +188,7 @@ internal static class NativeMethods
     internal static readonly IntPtr WS_SYSMENU = 0x80000;
     internal static readonly IntPtr WS_EX_TOPMOST = 0x00000008;
     internal static readonly IntPtr WS_EX_TOOLWINDOW = 0x00000080;
+    internal static readonly IntPtr WS_EX_NOACTIVATE = 0x08000000;
     internal static readonly IntPtr WS_EX_APPWINDOW = 0x00040000;
     #endregion
 
@@ -227,6 +237,13 @@ internal static class NativeMethods
     internal const uint MF_SEPARATOR = 0x00000800;
     internal const uint TPM_RIGHTBUTTON = 0x0002;
     internal const uint TPM_RETURNCMD = 0x0100;
+    #endregion
+
+    #region Constants — WinEvent
+    internal const uint EVENT_SYSTEM_FOREGROUND = 0x0003;
+    internal const uint EVENT_OBJECT_REORDER = 0x8004;
+    internal const uint WINEVENT_OUTOFCONTEXT = 0x0000;
+    internal const uint WINEVENT_SKIPOWNPROCESS = 0x0002;
     #endregion
 
     #region Constants — HWND_MESSAGE
