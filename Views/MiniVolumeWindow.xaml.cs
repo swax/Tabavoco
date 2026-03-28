@@ -325,6 +325,13 @@ public sealed partial class MiniVolumeWindow : Window
         // Context menu will show automatically due to ContextFlyout
     }
 
+    private void OnResetPositionClicked(object sender, RoutedEventArgs e)
+    {
+        Win32WindowManager.PositionAtBottomLeft(this);
+        Win32WindowManager.ApplyTopmostStyle(this);
+        SaveWindowPosition();
+    }
+
     private void OnExitClicked(object sender, RoutedEventArgs e)
     {
         Application.Current.Exit();
