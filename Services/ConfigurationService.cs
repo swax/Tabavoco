@@ -16,6 +16,8 @@ public class ConfigurationService
         LoadConfiguration();
     }
 
+    public bool HasSavedPosition { get; private set; }
+
     public double WindowLeft
     {
         get => GetValue<double>("WindowLeft");
@@ -47,6 +49,7 @@ public class ConfigurationService
         }, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
         
         File.WriteAllText(_configFilePath, json);
+        HasSavedPosition = true;
     }
 
     private void LoadConfiguration()
@@ -63,13 +66,16 @@ public class ConfigurationService
         _values["WindowLeft"] = configuration.GetValue<double>("WindowSettings:WindowLeft");
         _values["WindowTop"] = configuration.GetValue<double>("WindowSettings:WindowTop");
         _values["ShowMediaControls"] = configuration.GetValue<bool>("WindowSettings:ShowMediaControls");
+
+        // Position is saved on first drag — if the key exists in config, we have a saved position
+        HasSavedPosition = configuration.GetSection("WindowSettings:WindowLeft").Exists();
     }
 
     private T GetValue<T>(string key)
     {
         if (_values.TryGetValue(key, out var value))
             return (T)Convert.ChangeType(value, typeof(T));
-        
+
         return default(T)!;
     }
 

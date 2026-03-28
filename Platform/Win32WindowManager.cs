@@ -34,24 +34,6 @@ public static class Win32WindowManager
     }
 
     /// <summary>
-    /// Checks whether a given screen position is visible on any connected monitor.
-    /// Returns false if the point is off-screen (e.g. a monitor was disconnected).
-    /// </summary>
-    public static bool IsPositionOnAnyMonitor(int x, int y)
-    {
-        var point = new NativeMethods.POINT { X = x, Y = y };
-        var hMonitor = NativeMethods.MonitorFromPoint(point, NativeMethods.MONITOR_DEFAULTTONEAREST);
-        var info = new NativeMethods.MONITORINFO { cbSize = Marshal.SizeOf<NativeMethods.MONITORINFO>() };
-        if (!NativeMethods.GetMonitorInfo(hMonitor, ref info))
-            return false;
-
-        // MonitorFromPoint with DEFAULTTONEAREST always returns a monitor,
-        // so check if the point actually falls within that monitor's bounds
-        return x >= info.rcMonitor.Left && x < info.rcMonitor.Right &&
-               y >= info.rcMonitor.Top && y < info.rcMonitor.Bottom;
-    }
-
-    /// <summary>
     /// Configures a window to behave as a tool window that doesn't appear in taskbar
     /// </summary>
     public static void ConfigureAsToolWindow(Window window)
