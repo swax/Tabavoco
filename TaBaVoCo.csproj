@@ -60,6 +60,9 @@
     <Content Include="Assets\icon.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <!-- appsettings.json is created on demand by ConfigurationService to preserve
+         settings during development and avoid shipping default 0/0 positions that
+         would prevent auto-positioning on first run -->
   </ItemGroup>
 
   <ItemGroup>

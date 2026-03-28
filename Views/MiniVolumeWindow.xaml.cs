@@ -199,7 +199,7 @@ public sealed partial class MiniVolumeWindow : Window
             {
                 DispatcherQueue.TryEnqueue(() =>
                 {
-                    Win32WindowManager.PositionAtBottomLeft(this, POSITIONING_OFFSET_X, POSITIONING_OFFSET_Y);
+                    Win32WindowManager.PositionAtBottomLeft(this);
                     Win32WindowManager.ApplyTopmostStyle(this);
                     SaveWindowPosition();
                 });
@@ -343,7 +343,7 @@ public sealed partial class MiniVolumeWindow : Window
         else
         {
             // First launch default: bottom left of primary monitor
-            Win32WindowManager.PositionAtBottomLeft(this, POSITIONING_OFFSET_X, POSITIONING_OFFSET_Y);
+            Win32WindowManager.PositionAtBottomLeft(this);
         }
 
         // Apply extended topmost style
