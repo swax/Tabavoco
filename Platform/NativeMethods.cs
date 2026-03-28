@@ -222,6 +222,8 @@ internal static class NativeMethods
 
     #region Constants — Menu
     internal const uint MF_STRING = 0x00000000;
+    internal const uint MF_GRAYED = 0x00000001;
+    internal const uint MF_CHECKED = 0x00000008;
     internal const uint MF_SEPARATOR = 0x00000800;
     internal const uint TPM_RIGHTBUTTON = 0x0002;
     internal const uint TPM_RETURNCMD = 0x0100;

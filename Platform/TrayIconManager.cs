@@ -1,7 +1,9 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Runtime.InteropServices;
+using Tabavoco.Services;
 using Tabavoco.Utils;
 
 namespace Tabavoco.Platform;
@@ -13,8 +15,10 @@ namespace Tabavoco.Platform;
 public class TrayIconManager : IDisposable
 {
     private const uint WM_TRAYICON = NativeMethods.WM_APP + 1;
-    private const int IDM_OPEN_CONFIG = 1000;
-    private const int IDM_EXIT = 1001;
+    private const int IDM_RESET_POSITION = 1000;
+    private const int IDM_RUN_ON_STARTUP = 1001;
+    private const int IDM_OPEN_CONFIG = 1002;
+    private const int IDM_EXIT = 1003;
     private const string WindowClassName = "TabavocoTrayIconClass";
 
     private IntPtr _hwnd;
@@ -26,6 +30,7 @@ public class TrayIconManager : IDisposable
     private bool _iconAdded;
 
     public event Action? ExitRequested;
+    public event Action? ResetPositionRequested;
 
     public TrayIconManager()
     {
@@ -182,6 +187,18 @@ public class TrayIconManager : IDisposable
 
         try
         {
+            // App title (disabled, display-only)
+            NativeMethods.AppendMenu(hMenu, NativeMethods.MF_STRING | NativeMethods.MF_GRAYED,
+                IntPtr.Zero, GetAppTitle());
+            NativeMethods.AppendMenu(hMenu, NativeMethods.MF_SEPARATOR, IntPtr.Zero, null!);
+
+            NativeMethods.AppendMenu(hMenu, NativeMethods.MF_STRING, (IntPtr)IDM_RESET_POSITION, "Reset Position");
+
+            var startupFlags = NativeMethods.MF_STRING;
+            if (StartupManager.IsStartupEnabled())
+                startupFlags |= NativeMethods.MF_CHECKED;
+            NativeMethods.AppendMenu(hMenu, startupFlags, (IntPtr)IDM_RUN_ON_STARTUP, "Run on Startup");
+
             NativeMethods.AppendMenu(hMenu, NativeMethods.MF_STRING, (IntPtr)IDM_OPEN_CONFIG, "Open Config Folder");
             NativeMethods.AppendMenu(hMenu, NativeMethods.MF_SEPARATOR, IntPtr.Zero, null!);
             NativeMethods.AppendMenu(hMenu, NativeMethods.MF_STRING, (IntPtr)IDM_EXIT, "Exit");
@@ -198,19 +215,45 @@ public class TrayIconManager : IDisposable
             // Post a benign message to fix the well-known menu dismiss bug (MSDN KB135788)
             NativeMethods.PostMessage(_hwnd, 0, IntPtr.Zero, IntPtr.Zero);
 
-            if (cmd == IDM_OPEN_CONFIG)
+            switch (cmd)
             {
-                OpenConfigFolder();
-            }
-            else if (cmd == IDM_EXIT)
-            {
-                ExitRequested?.Invoke();
+                case IDM_RESET_POSITION:
+                    ResetPositionRequested?.Invoke();
+                    break;
+                case IDM_RUN_ON_STARTUP:
+                    ToggleRunOnStartup();
+                    break;
+                case IDM_OPEN_CONFIG:
+                    OpenConfigFolder();
+                    break;
+                case IDM_EXIT:
+                    ExitRequested?.Invoke();
+                    break;
             }
         }
         finally
         {
             NativeMethods.DestroyMenu(hMenu);
         }
+    }
+
+    private static string GetAppTitle()
+    {
+        try
+        {
+            var version = Assembly.GetExecutingAssembly().GetName().Version;
+            return $"Tabavoco {version?.Major}.{version?.Minor}";
+        }
+        catch
+        {
+            return "Tabavoco";
+        }
+    }
+
+    private static void ToggleRunOnStartup()
+    {
+        var current = StartupManager.IsStartupEnabled();
+        StartupManager.SetStartupEnabled(!current);
     }
 
     private static void OpenConfigFolder()
