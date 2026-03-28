@@ -12,95 +12,15 @@ namespace Tabavoco.Platform;
 /// </summary>
 public static class Win32WindowManager
 {
-    #region Win32 API Imports
-    [DllImport("user32.dll")]
-    private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
-
-    [DllImport("user32.dll")]
-    private static extern IntPtr GetSystemMetrics(int nIndex);
-
-    [DllImport("user32.dll")]
-    private static extern IntPtr GetWindowLongPtr(IntPtr hWnd, int nIndex);
-
-    [DllImport("user32.dll")]
-    private static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
-
-    [DllImport("user32.dll")]
-    private static extern uint GetDpiForWindow(IntPtr hWnd);
-
-    [DllImport("user32.dll")]
-    private static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
-
-    [DllImport("user32.dll")]
-    private static extern IntPtr GetForegroundWindow();
-
-    [DllImport("user32.dll")]
-    private static extern IntPtr MonitorFromPoint(POINT pt, uint dwFlags);
-
-    [DllImport("user32.dll", CharSet = CharSet.Auto)]
-    private static extern bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFO lpmi);
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct POINT
-    {
-        public int X;
-        public int Y;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct RECT
-    {
-        public int Left;
-        public int Top;
-        public int Right;
-        public int Bottom;
-    }
-
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-    private struct MONITORINFO
-    {
-        public int cbSize;
-        public RECT rcMonitor;
-        public RECT rcWork;
-        public uint dwFlags;
-    }
-    #endregion
-
-    #region Win32 Constants
-    private const int HWND_TOPMOST = -1;
-    private const uint SWP_NOACTIVATE = 0x0010;
-    private const uint SWP_SHOWWINDOW = 0x0040;
-    private const uint SWP_NOMOVE = 0x0002;
-    private const uint SWP_NOSIZE = 0x0001;
-    private const int SM_CXSCREEN = 0;
-    private const int SM_CYSCREEN = 1;
-    private const int GWL_STYLE = -16;
-    private const int GWL_EXSTYLE = -20;
-    private static readonly IntPtr WS_SYSMENU = 0x80000;
-    private static readonly IntPtr WS_EX_TOPMOST = 0x00000008;
-    private static readonly IntPtr WS_EX_TOOLWINDOW = 0x00000080;
-    private static readonly IntPtr WS_EX_APPWINDOW = 0x00040000;
-    
-    // Monitor constants
-    private const uint MONITOR_DEFAULTTOPRIMARY = 1;
-    private const uint MONITOR_DEFAULTTONEAREST = 2;
-
-    // Media control constants
-    private const int WM_APPCOMMAND = 0x319;
-    private const int APPCOMMAND_MEDIA_PLAY_PAUSE = 14;
-    private const int APPCOMMAND_MEDIA_NEXTTRACK = 11;
-    private const int APPCOMMAND_MEDIA_PREVIOUSTRACK = 12;
-    #endregion
-
     /// <summary>
     /// Gets the full bounds of the primary monitor (includes taskbar area)
     /// </summary>
-    private static RECT GetPrimaryMonitorBounds()
+    private static NativeMethods.RECT GetPrimaryMonitorBounds()
     {
-        var point = new POINT { X = 0, Y = 0 };
-        var hMonitor = MonitorFromPoint(point, MONITOR_DEFAULTTOPRIMARY);
-        var info = new MONITORINFO { cbSize = Marshal.SizeOf<MONITORINFO>() };
-        GetMonitorInfo(hMonitor, ref info);
+        var point = new NativeMethods.POINT { X = 0, Y = 0 };
+        var hMonitor = NativeMethods.MonitorFromPoint(point, NativeMethods.MONITOR_DEFAULTTOPRIMARY);
+        var info = new NativeMethods.MONITORINFO { cbSize = Marshal.SizeOf<NativeMethods.MONITORINFO>() };
+        NativeMethods.GetMonitorInfo(hMonitor, ref info);
         return info.rcMonitor;
     }
 
@@ -119,10 +39,10 @@ public static class Win32WindowManager
     /// </summary>
     public static bool IsPositionOnAnyMonitor(int x, int y)
     {
-        var point = new POINT { X = x, Y = y };
-        var hMonitor = MonitorFromPoint(point, MONITOR_DEFAULTTONEAREST);
-        var info = new MONITORINFO { cbSize = Marshal.SizeOf<MONITORINFO>() };
-        if (!GetMonitorInfo(hMonitor, ref info))
+        var point = new NativeMethods.POINT { X = x, Y = y };
+        var hMonitor = NativeMethods.MonitorFromPoint(point, NativeMethods.MONITOR_DEFAULTTONEAREST);
+        var info = new NativeMethods.MONITORINFO { cbSize = Marshal.SizeOf<NativeMethods.MONITORINFO>() };
+        if (!NativeMethods.GetMonitorInfo(hMonitor, ref info))
             return false;
 
         // MonitorFromPoint with DEFAULTTONEAREST always returns a monitor,
@@ -137,10 +57,11 @@ public static class Win32WindowManager
     public static void ConfigureAsToolWindow(Window window)
     {
         var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
-        var exStyle = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
+        var exStyle = NativeMethods.GetWindowLongPtr(hwnd, NativeMethods.GWL_EXSTYLE);
 
         // Set as tool window and remove from taskbar
-        SetWindowLongPtr(hwnd, GWL_EXSTYLE, (exStyle | WS_EX_TOOLWINDOW) & ~WS_EX_APPWINDOW);
+        NativeMethods.SetWindowLongPtr(hwnd, NativeMethods.GWL_EXSTYLE,
+            (exStyle | NativeMethods.WS_EX_TOOLWINDOW) & ~NativeMethods.WS_EX_APPWINDOW);
     }
 
     /// <summary>
@@ -149,14 +70,15 @@ public static class Win32WindowManager
     public static void ApplyTopmostStyle(Window window)
     {
         var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
-        
+
         // Dual approach: Extended style is more persistent, SetWindowPos has immediate effect
         // Standard WinUI 3 IsAlwaysOnTop doesn't guarantee positioning above taskbar
-        var exStyle = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
-        SetWindowLongPtr(hwnd, GWL_EXSTYLE, (exStyle | WS_EX_TOPMOST | WS_EX_TOOLWINDOW) & ~WS_EX_APPWINDOW);
-        
-        SetWindowPos(hwnd, (IntPtr)HWND_TOPMOST, 0, 0, 0, 0, 
-                     SWP_NOACTIVATE | SWP_NOSIZE | SWP_NOMOVE);
+        var exStyle = NativeMethods.GetWindowLongPtr(hwnd, NativeMethods.GWL_EXSTYLE);
+        NativeMethods.SetWindowLongPtr(hwnd, NativeMethods.GWL_EXSTYLE,
+            (exStyle | NativeMethods.WS_EX_TOPMOST | NativeMethods.WS_EX_TOOLWINDOW) & ~NativeMethods.WS_EX_APPWINDOW);
+
+        NativeMethods.SetWindowPos(hwnd, (IntPtr)NativeMethods.HWND_TOPMOST, 0, 0, 0, 0,
+                     NativeMethods.SWP_NOACTIVATE | NativeMethods.SWP_NOSIZE | NativeMethods.SWP_NOMOVE);
     }
 
     /// <summary>
@@ -184,7 +106,7 @@ public static class Win32WindowManager
     /// </summary>
     public static uint GetDpiForWindowHandle(IntPtr hwnd)
     {
-        return GetDpiForWindow(hwnd);
+        return NativeMethods.GetDpiForWindow(hwnd);
     }
 
     #region Media Control Methods
@@ -195,9 +117,9 @@ public static class Win32WindowManager
     {
         try
         {
-            var foregroundWindow = GetForegroundWindow();
-            var lParam = new IntPtr(APPCOMMAND_MEDIA_PLAY_PAUSE << 16);
-            SendMessage(foregroundWindow, WM_APPCOMMAND, IntPtr.Zero, lParam);
+            var foregroundWindow = NativeMethods.GetForegroundWindow();
+            var lParam = new IntPtr(NativeMethods.APPCOMMAND_MEDIA_PLAY_PAUSE << 16);
+            NativeMethods.SendMessage(foregroundWindow, NativeMethods.WM_APPCOMMAND, IntPtr.Zero, lParam);
             Logger.WriteInfo("WM_APPCOMMAND play/pause sent");
             return true;
         }
@@ -215,9 +137,9 @@ public static class Win32WindowManager
     {
         try
         {
-            var foregroundWindow = GetForegroundWindow();
-            var lParam = new IntPtr(APPCOMMAND_MEDIA_NEXTTRACK << 16);
-            SendMessage(foregroundWindow, WM_APPCOMMAND, IntPtr.Zero, lParam);
+            var foregroundWindow = NativeMethods.GetForegroundWindow();
+            var lParam = new IntPtr(NativeMethods.APPCOMMAND_MEDIA_NEXTTRACK << 16);
+            NativeMethods.SendMessage(foregroundWindow, NativeMethods.WM_APPCOMMAND, IntPtr.Zero, lParam);
             Logger.WriteInfo("WM_APPCOMMAND next track sent");
             return true;
         }
@@ -235,9 +157,9 @@ public static class Win32WindowManager
     {
         try
         {
-            var foregroundWindow = GetForegroundWindow();
-            var lParam = new IntPtr(APPCOMMAND_MEDIA_PREVIOUSTRACK << 16);
-            SendMessage(foregroundWindow, WM_APPCOMMAND, IntPtr.Zero, lParam);
+            var foregroundWindow = NativeMethods.GetForegroundWindow();
+            var lParam = new IntPtr(NativeMethods.APPCOMMAND_MEDIA_PREVIOUSTRACK << 16);
+            NativeMethods.SendMessage(foregroundWindow, NativeMethods.WM_APPCOMMAND, IntPtr.Zero, lParam);
             Logger.WriteInfo("WM_APPCOMMAND previous track sent");
             return true;
         }

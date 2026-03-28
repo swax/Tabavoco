@@ -34,6 +34,22 @@
             "problemMatcher": "$msCompile"
         },
         {
+            "label": "run",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "run",
+                "--no-build",
+                "--project",
+                "${workspaceFolder}\\Tabavoco.csproj"
+            ],
+            "group": "build",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
             "label": "watch",
             "command": "dotnet",
             "type": "process",
