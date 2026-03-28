@@ -45,20 +45,10 @@ public class VolumeManager : IDisposable
     public void SetVolume(int volumePercent)
     {
         Logger.WriteInfo($"SetVolume called with: {volumePercent}%");
-        EnsureEndpointCached();
-        if (_cachedEndpoint == null) 
-        {
-            Logger.WriteError("SetVolume failed: No audio endpoint available");
-            return;
-        }
-        
         var level = Math.Max(0, Math.Min(100, volumePercent)) / 100.0f;
-        var success = _audioDeviceManager.SetMasterVolumeScalar(_cachedEndpoint, level);
-        if (!success)
-        {
-            Logger.WriteError($"SetVolume failed - Level: {level:F2}");
-        }
-        
+        if (!ExecuteWithRetry(ep => _audioDeviceManager.SetMasterVolumeScalar(ep, level), "SetVolume"))
+            Logger.WriteError($"SetVolume failed after retry - Level: {level:F2}");
+
         // Update cached value immediately
         _cachedVolume = volumePercent;
     }
@@ -84,19 +74,9 @@ public class VolumeManager : IDisposable
     public void SetMute(bool mute)
     {
         Logger.WriteInfo($"SetMute called with: {mute}");
-        EnsureEndpointCached();
-        if (_cachedEndpoint == null) 
-        {
-            Logger.WriteError("SetMute failed: No audio endpoint available");
-            return;
-        }
-        
-        var success = _audioDeviceManager.SetMuteState(_cachedEndpoint, mute);
-        if (!success)
-        {
-            Logger.WriteError($"SetMute failed");
-        }
-        
+        if (!ExecuteWithRetry(ep => _audioDeviceManager.SetMuteState(ep, mute), "SetMute"))
+            Logger.WriteError("SetMute failed after retry");
+
         // Update cached value immediately
         _cachedMute = mute;
     }
@@ -125,6 +105,24 @@ public class VolumeManager : IDisposable
         Logger.WriteInfo($"RefreshFromSystem: Mute state = {_cachedMute}");
         
         _lastRefresh = DateTime.Now;
+    }
+
+    /// <summary>
+    /// Executes an operation on the cached endpoint, retrying once with a fresh endpoint on failure
+    /// </summary>
+    private bool ExecuteWithRetry(Func<AudioDeviceManager.IAudioEndpointVolume, bool> operation, string operationName)
+    {
+        EnsureEndpointCached();
+        if (_cachedEndpoint == null)
+            return false;
+
+        if (operation(_cachedEndpoint))
+            return true;
+
+        // Endpoint may be stale — re-acquire and retry once
+        Logger.WriteInfo($"{operationName} failed, re-acquiring endpoint and retrying");
+        RefreshFromSystem();
+        return _cachedEndpoint != null && operation(_cachedEndpoint);
     }
 
     /// <summary>
