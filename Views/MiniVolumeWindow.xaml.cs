@@ -190,14 +190,28 @@ public sealed partial class MiniVolumeWindow : Window
     #region Volume Control Event Handlers
     private void UpdateMuteButtonIcon()
     {
-        var isMuted = _volumeManager.IsMuted();
-        MuteButton.Content = isMuted ? "🔇" : "🔊";
+        try
+        {
+            var isMuted = _volumeManager.IsMuted();
+            MuteButton.Content = isMuted ? "🔇" : "🔊";
+        }
+        catch (Exception ex)
+        {
+            Logger.WriteError($"Failed to update mute button icon: {ex.Message}");
+        }
     }
 
     private void OnVolumeChanged(object sender, RangeBaseValueChangedEventArgs e)
     {
-        var volume = (int)e.NewValue;
-        _volumeManager.SetVolume(volume);
+        try
+        {
+            var volume = (int)e.NewValue;
+            _volumeManager.SetVolume(volume);
+        }
+        catch (Exception ex)
+        {
+            Logger.WriteError($"Failed to set volume: {ex.Message}");
+        }
     }
 
     private void OnVolumeSliderManipulationStarted(object sender, ManipulationStartedRoutedEventArgs e)
@@ -237,12 +251,19 @@ public sealed partial class MiniVolumeWindow : Window
 
     private void OnMuteButtonClicked(object sender, RoutedEventArgs e)
     {
-        // Toggle mute state
-        var currentMuteState = _volumeManager.IsMuted();
-        _volumeManager.SetMute(!currentMuteState);
-        
-        // Update button icon to reflect new state
-        UpdateMuteButtonIcon();
+        try
+        {
+            // Toggle mute state
+            var currentMuteState = _volumeManager.IsMuted();
+            _volumeManager.SetMute(!currentMuteState);
+
+            // Update button icon to reflect new state
+            UpdateMuteButtonIcon();
+        }
+        catch (Exception ex)
+        {
+            Logger.WriteError($"Failed to toggle mute: {ex.Message}");
+        }
     }
 
     private void OnMuteButtonPointerPressed(object sender, PointerRoutedEventArgs e)
@@ -351,34 +372,41 @@ public sealed partial class MiniVolumeWindow : Window
 
     private void SyncVolumeAndMuteState()
     {
-        // Refresh cached state from system
-        _volumeManager.RefreshFromSystem();
-        
-        // Get current cached volume and mute state
-        var currentVolume = _volumeManager.GetCurrentVolume();
-        var isMuted = _volumeManager.IsMuted();
-        
-        // Update slider if it doesn't match current system volume
-        if (Math.Abs(VolumeSlider.Value - currentVolume) > VOLUME_TOLERANCE)
+        try
         {
-            // Temporarily remove event handler to prevent feedback loop
-            VolumeSlider.ValueChanged -= OnVolumeChanged;
-            VolumeSlider.Value = currentVolume;
-            VolumeSlider.ValueChanged += OnVolumeChanged;
+            // Refresh cached state from system
+            _volumeManager.RefreshFromSystem();
+
+            // Get current cached volume and mute state
+            var currentVolume = _volumeManager.GetCurrentVolume();
+            var isMuted = _volumeManager.IsMuted();
+
+            // Update slider if it doesn't match current system volume
+            if (Math.Abs(VolumeSlider.Value - currentVolume) > VOLUME_TOLERANCE)
+            {
+                // Temporarily remove event handler to prevent feedback loop
+                VolumeSlider.ValueChanged -= OnVolumeChanged;
+                VolumeSlider.Value = currentVolume;
+                VolumeSlider.ValueChanged += OnVolumeChanged;
+            }
+
+            // Update mute button if state has changed
+            var currentButtonText = MuteButton.Content?.ToString();
+            var expectedButtonText = isMuted ? "🔇" : "🔊";
+            if (currentButtonText != expectedButtonText)
+            {
+                MuteButton.Content = expectedButtonText;
+            }
+
+            // Update media control button state if media controls are visible
+            if (_config.ShowMediaControls && MediaControlsPanel.Visibility == Visibility.Visible)
+            {
+                _ = Task.Run(async () => await MediaControlsPanel.RefreshMediaStateAsync());
+            }
         }
-        
-        // Update mute button if state has changed
-        var currentButtonText = MuteButton.Content?.ToString();
-        var expectedButtonText = isMuted ? "🔇" : "🔊";
-        if (currentButtonText != expectedButtonText)
+        catch (Exception ex)
         {
-            MuteButton.Content = expectedButtonText;
-        }
-        
-        // Update media control button state if media controls are visible
-        if (_config.ShowMediaControls && MediaControlsPanel.Visibility == Visibility.Visible)
-        {
-            _ = Task.Run(async () => await MediaControlsPanel.RefreshMediaStateAsync());
+            Logger.WriteError($"Failed to sync volume/mute state: {ex.Message}");
         }
     }
     #endregion
