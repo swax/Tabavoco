@@ -68,7 +68,7 @@ public class ConfigurationService
     private T GetValue<T>(string key)
     {
         if (_values.TryGetValue(key, out var value))
-            return (T)value;
+            return (T)Convert.ChangeType(value, typeof(T));
         
         return default(T)!;
     }
