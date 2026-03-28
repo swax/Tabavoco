@@ -237,6 +237,13 @@ public sealed partial class MiniVolumeWindow : Window
         {
             var volume = (int)e.NewValue;
             _volumeManager.SetVolume(volume);
+
+            // Auto-unmute when user changes volume while muted
+            if (_volumeManager.IsMuted())
+            {
+                _volumeManager.SetMute(false);
+                UpdateMuteButtonIcon();
+            }
         }
         catch (Exception ex)
         {
