@@ -325,22 +325,20 @@ public sealed partial class MiniVolumeWindow : Window
 
     private void SetInitialWindowPosition()
     {
-        // Check if we have saved position
-        var savedLeft = _config.WindowLeft;
-        var savedTop = _config.WindowTop;
-
-        if (savedLeft > 0 && savedTop > 0 &&
-            Win32WindowManager.IsPositionOnAnyMonitor((int)savedLeft, (int)savedTop))
+        if (_config.HasSavedPosition)
         {
-            // Use saved position (validated to be on a connected monitor)
+            var savedLeft = _config.WindowLeft;
+            var savedTop = _config.WindowTop;
+
+            // Left/top can be negative and still the window is completely on screen
             this.AppWindow.Move(new Windows.Graphics.PointInt32((int)savedLeft, (int)savedTop));
         }
         else
         {
-            // Position window at bottom left of primary monitor (default)
+            // First launch default: bottom left of primary monitor
             Win32WindowManager.PositionAtBottomLeft(this, POSITIONING_OFFSET_X, POSITIONING_OFFSET_Y);
         }
-        
+
         // Apply extended topmost style
         Win32WindowManager.ApplyTopmostStyle(this);
     }
