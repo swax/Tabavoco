@@ -8,11 +8,28 @@
           PointerPressed="OnPointerPressed" PointerMoved="OnPointerMoved" PointerReleased="OnPointerReleased">
         <Grid.ContextFlyout>
             <MenuFlyout>
-                <MenuFlyoutItem x:Name="AppTitleMenuItem" IsEnabled="False"/>
+                <MenuFlyoutItem x:Name="AppTitleMenuItem" IsEnabled="False">
+                    <MenuFlyoutItem.Icon>
+                        <BitmapIcon UriSource="ms-appx:///Assets/icon.png" ShowAsMonochrome="False"/>
+                    </MenuFlyoutItem.Icon>
+                </MenuFlyoutItem>
                 <MenuFlyoutSeparator/>
-                <ToggleMenuFlyoutItem x:Name="ShowMediaControlsMenuItem" Text="Show Media Controls" Click="OnShowMediaControlsClicked"/>
+                <MenuFlyoutItem Text="Reset Position" Click="OnResetPositionClicked">
+                    <MenuFlyoutItem.Icon>
+                        <FontIcon Glyph="&#xE72C;" FontFamily="{ThemeResource SymbolThemeFontFamily}"/>
+                    </MenuFlyoutItem.Icon>
+                </MenuFlyoutItem>
+                <ToggleMenuFlyoutItem x:Name="ShowMediaControlsMenuItem" Text="Show Media Controls" Click="OnShowMediaControlsClicked">
+                    <ToggleMenuFlyoutItem.Icon>
+                        <FontIcon Glyph="&#xE768;" FontFamily="{ThemeResource SymbolThemeFontFamily}"/>
+                    </ToggleMenuFlyoutItem.Icon>
+                </ToggleMenuFlyoutItem>
                 <MenuFlyoutSeparator/>
-                <MenuFlyoutItem Text="Exit" Click="OnExitClicked"/>
+                <MenuFlyoutItem Text="Exit" Click="OnExitClicked">
+                    <MenuFlyoutItem.Icon>
+                        <FontIcon Glyph="&#xE7E8;" FontFamily="{ThemeResource SymbolThemeFontFamily}"/>
+                    </MenuFlyoutItem.Icon>
+                </MenuFlyoutItem>
             </MenuFlyout>
         </Grid.ContextFlyout>
         
