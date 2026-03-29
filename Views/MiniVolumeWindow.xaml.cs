@@ -53,6 +53,7 @@ public sealed partial class MiniVolumeWindow : Window
         // Position window immediately after setup but before showing
         SetInitialWindowPosition();
         
+        SyncVolumeAndMuteState();
         StartVolumeSyncTimer();
         InitializeMediaControls();
         InitializeTrayIcon();
