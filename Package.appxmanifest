@@ -7,7 +7,7 @@
          IgnorableNamespaces="uap uap5 desktop rescap">
 
   <Identity Name="TransparentSource.Tabavoco"
-            Publisher="CN=Transparent Source"
+            Publisher="CN=7F720479-0A0A-42EF-A1BE-01B9E7C32507"
             Version="1.4.0.0" />
 
   <Properties>
