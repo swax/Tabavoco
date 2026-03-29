@@ -48,11 +48,13 @@
         <StackPanel Orientation="Horizontal" Padding="8,0">
             <Button x:Name="MuteButton"
                     Content="🔊"
-                    Background="Transparent" 
+                    Background="Transparent"
                     BorderThickness="0"
-                    FontSize="16" 
+                    FontSize="16"
                     Foreground="{ThemeResource TextFillColorPrimaryBrush}"
                     VerticalAlignment="Center"
+                    UseSystemFocusVisuals="False"
+                    IsTabStop="False"
                     Click="OnMuteButtonClicked"
                     PointerPressed="OnMuteButtonPointerPressed"
                     PointerReleased="OnMuteButtonPointerReleased"/>
