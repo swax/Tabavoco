@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Input;
 using System;
 using System.Reflection;
 using Windows.Foundation;
+using Windows.UI.ViewManagement;
 using Tabavoco.Services;
 using Tabavoco.Platform;
 using Tabavoco.Utils;
@@ -36,6 +37,7 @@ public sealed partial class MiniVolumeWindow : Window
     private double _dpiScaleFactor = 1.0;
     private readonly ConfigurationService _config = new ConfigurationService();
     private TrayIconManager? _trayIcon;
+    private readonly UISettings _uiSettings = new UISettings();
     #endregion
 
     #region Constructor & Lifecycle
@@ -54,6 +56,7 @@ public sealed partial class MiniVolumeWindow : Window
         StartVolumeSyncTimer();
         InitializeMediaControls();
         InitializeTrayIcon();
+        InitializeTheme();
         this.Closed += OnWindowClosed;
         Logger.WriteInfo("MiniVolumeWindow constructor completed");
     }
@@ -216,6 +219,31 @@ public sealed partial class MiniVolumeWindow : Window
         catch (Exception ex)
         {
             Logger.WriteError($"Failed to initialize tray icon: {ex.Message}");
+        }
+    }
+    #endregion
+
+    #region Theme Management
+    private void InitializeTheme()
+    {
+        ApplySystemTheme();
+        _uiSettings.ColorValuesChanged += OnSystemThemeChanged;
+        Logger.WriteInfo("Theme listener initialized");
+    }
+
+    private void OnSystemThemeChanged(UISettings sender, object args)
+    {
+        DispatcherQueue.TryEnqueue(ApplySystemTheme);
+    }
+
+    private void ApplySystemTheme()
+    {
+        if (Content is FrameworkElement rootElement)
+        {
+            var background = _uiSettings.GetColorValue(UIColorType.Background);
+            var isDark = background == Windows.UI.Color.FromArgb(255, 0, 0, 0);
+            rootElement.RequestedTheme = isDark ? ElementTheme.Dark : ElementTheme.Light;
+            Logger.WriteInfo($"Applied system theme: {rootElement.RequestedTheme}");
         }
     }
     #endregion
