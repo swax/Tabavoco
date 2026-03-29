@@ -65,6 +65,20 @@
             },
             "isBackground": true,
             "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "build-msixupload",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-ExecutionPolicy", "Bypass",
+                "-File", "${workspaceFolder}\\build-msix.ps1"
+            ],
+            "group": "build",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": "$msCompile"
         }
     ]
 }
