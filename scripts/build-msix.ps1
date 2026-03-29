@@ -10,7 +10,7 @@
 
 $ErrorActionPreference = "Stop"
 
-$ProjectDir = $PSScriptRoot
+$ProjectDir = Split-Path -Parent $PSScriptRoot
 $OutputDir = "$ProjectDir\installer-output"
 $Architectures = @("x64", "x86", "arm64")
 

@@ -6,7 +6,7 @@
 
 $ErrorActionPreference = "Stop"
 
-$ProjectDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$ProjectDir = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 $MsixPath = Get-ChildItem -Path "$ProjectDir\bin\Release" -Filter "*.msix" -Recurse |
     Sort-Object LastWriteTime -Descending | Select-Object -First 1
 

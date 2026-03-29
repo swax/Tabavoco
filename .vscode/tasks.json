@@ -67,12 +67,22 @@
             "problemMatcher": "$msCompile"
         },
         {
+            "label": "publish-release-zip",
+            "type": "shell",
+            "command": "dotnet publish -c Release -r win-x64 && pwsh -Command \"Compress-Archive -Path '${workspaceFolder}\\bin\\Release\\net9.0-windows10.0.19041.0\\win-x64\\publish\\*' -DestinationPath '${workspaceFolder}\\TaBaVoCo-win-x64.zip' -Force\"",
+            "group": "build",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
             "label": "build-msixupload",
             "type": "shell",
             "command": "powershell",
             "args": [
                 "-ExecutionPolicy", "Bypass",
-                "-File", "${workspaceFolder}\\build-msix.ps1"
+                "-File", "${workspaceFolder}\\scripts\\build-msix.ps1"
             ],
             "group": "build",
             "presentation": {
