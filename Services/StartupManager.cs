@@ -1,31 +1,34 @@
 using System;
 using System.IO;
-using System.Reflection;
+using System.Threading.Tasks;
 using Microsoft.Win32;
+using Windows.ApplicationModel;
 using Tabavoco.Utils;
 
 namespace Tabavoco.Services;
 
 /// <summary>
-/// Manages Windows startup registry entries for the application
+/// Manages application startup registration.
+/// Uses StartupTask API when running as MSIX, registry when unpackaged.
 /// </summary>
 public static class StartupManager
 {
     private const string StartupRegistryKey = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
     private const string AppName = "Tabavoco";
+    private const string StartupTaskId = "TabavocoStartup";
 
-    /// <summary>
-    /// Checks if the application is currently set to run on Windows startup
-    /// </summary>
-    /// <returns>True if startup is enabled, false otherwise</returns>
     public static bool IsStartupEnabled()
     {
         try
         {
-            using (var key = Registry.CurrentUser.OpenSubKey(StartupRegistryKey, false))
+            if (IsPackaged())
             {
-                return key?.GetValue(AppName) != null;
+                var task = Task.Run(() => StartupTask.GetAsync(StartupTaskId).AsTask()).GetAwaiter().GetResult();
+                return task.State == StartupTaskState.Enabled;
             }
+
+            using var key = Registry.CurrentUser.OpenSubKey(StartupRegistryKey, false);
+            return key?.GetValue(AppName) != null;
         }
         catch (Exception ex)
         {
@@ -34,34 +37,14 @@ public static class StartupManager
         }
     }
 
-    /// <summary>
-    /// Enables or disables the application from running on Windows startup
-    /// </summary>
-    /// <param name="enable">True to enable startup, false to disable</param>
-    /// <returns>True if the operation succeeded, false otherwise</returns>
     public static bool SetStartupEnabled(bool enable)
     {
         try
         {
-            using (var key = Registry.CurrentUser.OpenSubKey(StartupRegistryKey, true))
-            {
-                if (enable)
-                {
-                    var exePath = GetExecutablePath();
-                    if (!string.IsNullOrEmpty(exePath))
-                    {
-                        key?.SetValue(AppName, exePath);
-                        return true;
-                    }
-                    Logger.WriteError("Failed to enable startup: Could not determine executable path");
-                    return false;
-                }
-                else
-                {
-                    key?.DeleteValue(AppName, false);
-                    return true;
-                }
-            }
+            if (IsPackaged())
+                return SetStartupEnabledPackaged(enable);
+
+            return SetStartupEnabledUnpackaged(enable);
         }
         catch (Exception ex)
         {
@@ -70,28 +53,69 @@ public static class StartupManager
         }
     }
 
-    /// <summary>
-    /// Gets the current executable path for registry entry
-    /// </summary>
-    /// <returns>The executable path, or empty string if not found</returns>
+    private static bool SetStartupEnabledPackaged(bool enable)
+    {
+        var task = Task.Run(() => StartupTask.GetAsync(StartupTaskId).AsTask()).GetAwaiter().GetResult();
+
+        if (enable)
+        {
+            if (task.State == StartupTaskState.DisabledByUser)
+            {
+                Logger.WriteError("Startup was disabled by user in Task Manager and cannot be re-enabled programmatically.");
+                return false;
+            }
+            var newState = Task.Run(() => task.RequestEnableAsync().AsTask()).GetAwaiter().GetResult();
+            return newState == StartupTaskState.Enabled;
+        }
+
+        task.Disable();
+        return true;
+    }
+
+    private static bool SetStartupEnabledUnpackaged(bool enable)
+    {
+        using var key = Registry.CurrentUser.OpenSubKey(StartupRegistryKey, true);
+        if (enable)
+        {
+            var exePath = GetExecutablePath();
+            if (!string.IsNullOrEmpty(exePath))
+            {
+                key?.SetValue(AppName, exePath);
+                return true;
+            }
+            Logger.WriteError("Failed to enable startup: Could not determine executable path");
+            return false;
+        }
+
+        key?.DeleteValue(AppName, false);
+        return true;
+    }
+
+    private static bool IsPackaged()
+    {
+        try
+        {
+            _ = Package.Current.Id;
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     private static string GetExecutablePath()
     {
         try
         {
-            // First try Environment.ProcessPath (preferred for .NET 6+)
             var processPath = Environment.ProcessPath;
             if (!string.IsNullOrEmpty(processPath) && File.Exists(processPath))
-            {
                 return processPath;
-            }
-            
-            // Fallback to process main module
+
             var mainModule = System.Diagnostics.Process.GetCurrentProcess().MainModule;
             if (mainModule?.FileName != null && File.Exists(mainModule.FileName))
-            {
                 return mainModule.FileName;
-            }
-            
+
             Logger.WriteError("Failed to determine executable path: All methods returned null or non-existent paths");
             return "";
         }

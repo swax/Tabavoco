@@ -12,7 +12,7 @@ public class ConfigurationService
 
     public ConfigurationService()
     {
-        _configFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json");
+        _configFilePath = Path.Combine(GetConfigDirectory(), "appsettings.json");
         LoadConfiguration();
     }
 
@@ -36,6 +36,18 @@ public class ConfigurationService
         set => SetValue("ShowMediaControls", value);
     }
 
+    public static string GetConfigDirectory()
+    {
+        try
+        {
+            return Windows.Storage.ApplicationData.Current.LocalFolder.Path;
+        }
+        catch
+        {
+            return AppDomain.CurrentDomain.BaseDirectory;
+        }
+    }
+
     public void Save()
     {
         var json = System.Text.Json.JsonSerializer.Serialize(new
@@ -57,9 +69,12 @@ public class ConfigurationService
         if (!File.Exists(_configFilePath))
             return;
 
+        var configDir = Path.GetDirectoryName(_configFilePath)!;
+        var configFile = Path.GetFileName(_configFilePath);
+
         var builder = new ConfigurationBuilder()
-            .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
-            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false);
+            .SetBasePath(configDir)
+            .AddJsonFile(configFile, optional: false, reloadOnChange: false);
         
         var configuration = builder.Build();
         

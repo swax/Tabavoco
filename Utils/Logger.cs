@@ -19,14 +19,21 @@ public static class Logger
     {
         try
         {
-            // Get the directory where the executable is located
-            var exeLocation = Assembly.GetExecutingAssembly().Location;
-            var exeDirectory = Path.GetDirectoryName(exeLocation) ?? Environment.CurrentDirectory;
-            _logFilePath = Path.Combine(exeDirectory, "tabavoco-debug.log");
+            // Use writable location (LocalAppData for MSIX, exe directory for unpackaged)
+            string logDirectory;
+            try
+            {
+                logDirectory = Windows.Storage.ApplicationData.Current.LocalFolder.Path;
+            }
+            catch
+            {
+                var exeLocation = Assembly.GetExecutingAssembly().Location;
+                logDirectory = Path.GetDirectoryName(exeLocation) ?? Environment.CurrentDirectory;
+            }
+            _logFilePath = Path.Combine(logDirectory, "tabavoco-debug.log");
         }
         catch
         {
-            // Fallback to current directory if assembly location fails
             _logFilePath = Path.Combine(Environment.CurrentDirectory, "tabavoco-debug.log");
         }
     }

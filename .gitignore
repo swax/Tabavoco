@@ -2,3 +2,6 @@
 .vs/
 bin/
 obj/
+installer-output/
+installer-temp/
+.wix/

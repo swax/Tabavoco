@@ -262,7 +262,7 @@ public class TrayIconManager : IDisposable
         {
             Process.Start(new ProcessStartInfo
             {
-                FileName = AppDomain.CurrentDomain.BaseDirectory,
+                FileName = ConfigurationService.GetConfigDirectory(),
                 UseShellExecute = true
             });
         }
