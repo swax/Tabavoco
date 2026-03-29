@@ -5,7 +5,6 @@ using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
 using System;
 using System.Reflection;
-using Windows.Foundation;
 using Windows.UI.ViewManagement;
 using Tabavoco.Services;
 using Tabavoco.Platform;
@@ -27,7 +26,7 @@ public sealed partial class MiniVolumeWindow : Window
 
     #region Fields
     private bool _isDragging = false;
-    private Point _lastPointerPosition;
+    private NativeMethods.POINT _lastScreenPosition;
     private IntPtr _foregroundHook;
     private IntPtr _reorderHook;
     private NativeMethods.WinEventDelegate? _topmostHookDelegate;
@@ -487,7 +486,7 @@ public sealed partial class MiniVolumeWindow : Window
         if (grid != null)
         {
             _isDragging = true;
-            _lastPointerPosition = e.GetCurrentPoint(grid).Position;
+            NativeMethods.GetCursorPos(out _lastScreenPosition);
             grid.CapturePointer(e.Pointer);
         }
     }
@@ -496,19 +495,14 @@ public sealed partial class MiniVolumeWindow : Window
     {
         if (_isDragging)
         {
-            var grid = sender as Grid;
-            if (grid != null)
-            {
-                var currentPosition = e.GetCurrentPoint(grid).Position;
-                var deltaX = currentPosition.X - _lastPointerPosition.X;
-                var deltaY = currentPosition.Y - _lastPointerPosition.Y;
+            NativeMethods.GetCursorPos(out var currentScreenPos);
+            var deltaX = currentScreenPos.X - _lastScreenPosition.X;
+            var deltaY = currentScreenPos.Y - _lastScreenPosition.Y;
 
-                var currentPos = this.AppWindow.Position;
-                var newX = currentPos.X + (int)deltaX;
-                var newY = currentPos.Y + (int)deltaY;
+            var currentPos = this.AppWindow.Position;
+            this.AppWindow.Move(new Windows.Graphics.PointInt32(currentPos.X + deltaX, currentPos.Y + deltaY));
 
-                this.AppWindow.Move(new Windows.Graphics.PointInt32(newX, newY));
-            }
+            _lastScreenPosition = currentScreenPos;
         }
     }
 
