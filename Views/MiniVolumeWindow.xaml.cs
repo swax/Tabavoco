@@ -44,6 +44,7 @@ public sealed partial class MiniVolumeWindow : Window
     {
         Logger.WriteInfo("MiniVolumeWindow constructor started");
         InitializeComponent();
+        SetElementCursor(DragGrip, InputSystemCursorShape.SizeAll);
         SetupWindowHidden();
         
         // Set app title with version in context menu
@@ -74,6 +75,13 @@ public sealed partial class MiniVolumeWindow : Window
         // Window is already positioned in constructor, just show and activate
         this.AppWindow.Show();
         base.Activate();
+    }
+
+    private static void SetElementCursor(UIElement element, InputSystemCursorShape shape)
+    {
+        typeof(UIElement)
+            .GetProperty("ProtectedCursor", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
+            ?.SetValue(element, InputSystemCursor.Create(shape));
     }
     #endregion
 
@@ -120,6 +128,7 @@ public sealed partial class MiniVolumeWindow : Window
         
         // Install WinEvent hooks to reactively enforce topmost when z-order changes
         (_foregroundHook, _reorderHook, _topmostHookDelegate) = Win32WindowManager.InstallTopmostHook(this);
+
     }
 
     private void CalculateDpiScaleFactor()
@@ -544,6 +553,16 @@ public sealed partial class MiniVolumeWindow : Window
             grid?.ReleasePointerCapture(e.Pointer);
             SaveWindowPosition();
         }
+    }
+
+    private void OnWindowPointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+        DragGrip.Opacity = 1;
+    }
+
+    private void OnWindowPointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        DragGrip.Opacity = 0;
     }
     #endregion
 }
