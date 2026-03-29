@@ -18,7 +18,8 @@ public class TrayIconManager : IDisposable
     private const int IDM_RESET_POSITION = 1000;
     private const int IDM_RUN_ON_STARTUP = 1001;
     private const int IDM_OPEN_CONFIG = 1002;
-    private const int IDM_EXIT = 1003;
+    private const int IDM_SHOW_HIDE = 1003;
+    private const int IDM_EXIT = 1004;
     private const string WindowClassName = "TabavocoTrayIconClass";
 
     private IntPtr _hwnd;
@@ -31,6 +32,10 @@ public class TrayIconManager : IDisposable
 
     public event Action? ExitRequested;
     public event Action? ResetPositionRequested;
+    public event Action? ShowRequested;
+    public event Action? HideRequested;
+
+    public bool IsWindowVisible { get; set; } = true;
 
     public TrayIconManager()
     {
@@ -170,7 +175,14 @@ public class TrayIconManager : IDisposable
         if (msg == WM_TRAYICON)
         {
             var eventType = (uint)(lParam.ToInt64() & 0xFFFF);
-            if (eventType == NativeMethods.WM_RBUTTONUP)
+            if (eventType == NativeMethods.WM_LBUTTONUP)
+            {
+                if (IsWindowVisible)
+                    HideRequested?.Invoke();
+                else
+                    ShowRequested?.Invoke();
+            }
+            else if (eventType == NativeMethods.WM_RBUTTONUP)
             {
                 ShowContextMenu();
             }
@@ -201,6 +213,8 @@ public class TrayIconManager : IDisposable
 
             NativeMethods.AppendMenu(hMenu, NativeMethods.MF_STRING, (IntPtr)IDM_OPEN_CONFIG, "Open Config Folder");
             NativeMethods.AppendMenu(hMenu, NativeMethods.MF_SEPARATOR, IntPtr.Zero, null!);
+            var showHideText = IsWindowVisible ? "Hide" : "Show";
+            NativeMethods.AppendMenu(hMenu, NativeMethods.MF_STRING, (IntPtr)IDM_SHOW_HIDE, showHideText);
             NativeMethods.AppendMenu(hMenu, NativeMethods.MF_STRING, (IntPtr)IDM_EXIT, "Exit");
 
             NativeMethods.GetCursorPos(out var pt);
@@ -225,6 +239,12 @@ public class TrayIconManager : IDisposable
                     break;
                 case IDM_OPEN_CONFIG:
                     OpenConfigFolder();
+                    break;
+                case IDM_SHOW_HIDE:
+                    if (IsWindowVisible)
+                        HideRequested?.Invoke();
+                    else
+                        ShowRequested?.Invoke();
                     break;
                 case IDM_EXIT:
                     ExitRequested?.Invoke();
