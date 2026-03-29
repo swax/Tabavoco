@@ -81,6 +81,7 @@ internal static class NativeMethods
 
     [DllImport("user32.dll")]
     internal static extern bool UnhookWinEvent(IntPtr hWinEventHook);
+
     #endregion
 
     #region shell32.dll

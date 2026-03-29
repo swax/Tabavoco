@@ -5,7 +5,8 @@
         xmlns:local="using:Tabavoco.Views">
     
     <Grid Background="{ThemeResource SolidBackgroundFillColorBaseBrush}" RightTapped="OnRightTapped"
-          PointerPressed="OnPointerPressed" PointerMoved="OnPointerMoved" PointerReleased="OnPointerReleased">
+          PointerPressed="OnPointerPressed" PointerMoved="OnPointerMoved" PointerReleased="OnPointerReleased"
+          PointerEntered="OnWindowPointerEntered" PointerExited="OnWindowPointerExited">
         <Grid.ContextFlyout>
             <MenuFlyout x:Name="ContextMenuFlyout" Opened="OnContextMenuOpened" Closed="OnContextMenuClosed">
                 <MenuFlyoutItem x:Name="AppTitleMenuItem" IsEnabled="False">
@@ -38,6 +39,12 @@
             </MenuFlyout>
         </Grid.ContextFlyout>
         
+        <!-- Drag grip overlay - sits in the left padding, no layout impact -->
+        <TextBlock x:Name="DragGrip" Text="&#x22EE;" FontSize="12" Opacity="0"
+                   Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                   VerticalAlignment="Center" HorizontalAlignment="Left"
+                   Margin="4,-2,0,0"/>
+
         <StackPanel Orientation="Horizontal" Padding="8,0">
             <Button x:Name="MuteButton"
                     Content="🔊"
