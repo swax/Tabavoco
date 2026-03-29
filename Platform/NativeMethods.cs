@@ -213,6 +213,7 @@ internal static class NativeMethods
     #region Constants — Messages
     internal const uint WM_APPCOMMAND = 0x319;
     internal const uint WM_APP = 0x8000;
+    internal const uint WM_LBUTTONUP = 0x0202;
     internal const uint WM_RBUTTONUP = 0x0205;
     #endregion
 

@@ -25,6 +25,11 @@
                     </ToggleMenuFlyoutItem.Icon>
                 </ToggleMenuFlyoutItem>
                 <MenuFlyoutSeparator/>
+                <MenuFlyoutItem Text="Hide" Click="OnHideClicked">
+                    <MenuFlyoutItem.Icon>
+                        <FontIcon Glyph="&#xED1A;" FontFamily="{ThemeResource SymbolThemeFontFamily}"/>
+                    </MenuFlyoutItem.Icon>
+                </MenuFlyoutItem>
                 <MenuFlyoutItem Text="Exit" Click="OnExitClicked">
                     <MenuFlyoutItem.Icon>
                         <FontIcon Glyph="&#xE7E8;" FontFamily="{ThemeResource SymbolThemeFontFamily}"/>

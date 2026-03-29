@@ -213,6 +213,14 @@ public sealed partial class MiniVolumeWindow : Window
             {
                 DispatcherQueue.TryEnqueue(() => Application.Current.Exit());
             };
+            _trayIcon.ShowRequested += () =>
+            {
+                DispatcherQueue.TryEnqueue(ShowWindow);
+            };
+            _trayIcon.HideRequested += () =>
+            {
+                DispatcherQueue.TryEnqueue(HideWindow);
+            };
             Logger.WriteInfo("Tray icon initialized");
         }
         catch (Exception ex)
@@ -376,11 +384,32 @@ public sealed partial class MiniVolumeWindow : Window
         SaveWindowPosition();
     }
 
+    private void OnHideClicked(object sender, RoutedEventArgs e)
+    {
+        HideWindow();
+    }
+
     private void OnExitClicked(object sender, RoutedEventArgs e)
     {
         Application.Current.Exit();
     }
 
+    private void HideWindow()
+    {
+        this.AppWindow.Hide();
+        if (_trayIcon != null)
+            _trayIcon.IsWindowVisible = false;
+        Logger.WriteInfo("Window hidden");
+    }
+
+    private void ShowWindow()
+    {
+        this.AppWindow.Show();
+        Win32WindowManager.ApplyTopmostStyle(this);
+        if (_trayIcon != null)
+            _trayIcon.IsWindowVisible = true;
+        Logger.WriteInfo("Window shown");
+    }
     #endregion
 
 
