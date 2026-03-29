@@ -7,7 +7,7 @@
     <Grid Background="{ThemeResource SolidBackgroundFillColorBaseBrush}" RightTapped="OnRightTapped"
           PointerPressed="OnPointerPressed" PointerMoved="OnPointerMoved" PointerReleased="OnPointerReleased">
         <Grid.ContextFlyout>
-            <MenuFlyout>
+            <MenuFlyout x:Name="ContextMenuFlyout" Opened="OnContextMenuOpened" Closed="OnContextMenuClosed">
                 <MenuFlyoutItem x:Name="AppTitleMenuItem" IsEnabled="False">
                     <MenuFlyoutItem.Icon>
                         <BitmapIcon UriSource="ms-appx:///Assets/icon.png" ShowAsMonochrome="False"/>

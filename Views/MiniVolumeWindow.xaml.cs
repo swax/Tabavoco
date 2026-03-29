@@ -353,6 +353,23 @@ public sealed partial class MiniVolumeWindow : Window
         // Context menu will show automatically due to ContextFlyout
     }
 
+    private void OnContextMenuOpened(object sender, object e)
+    {
+        // Temporarily allow activation so the flyout's light-dismiss works
+        // (WS_EX_NOACTIVATE prevents the window deactivation event that triggers light-dismiss)
+        var hwnd = Win32WindowManager.GetWindowHandle(this);
+        var exStyle = NativeMethods.GetWindowLongPtr(hwnd, NativeMethods.GWL_EXSTYLE);
+        NativeMethods.SetWindowLongPtr(hwnd, NativeMethods.GWL_EXSTYLE, exStyle & ~NativeMethods.WS_EX_NOACTIVATE);
+        // Activate the window so clicking elsewhere will deactivate it and trigger light-dismiss
+        NativeMethods.SetForegroundWindow(hwnd);
+    }
+
+    private void OnContextMenuClosed(object sender, object e)
+    {
+        // Restore non-activating tool window behavior
+        Win32WindowManager.ApplyTopmostStyle(this);
+    }
+
     private void OnResetPositionClicked(object sender, RoutedEventArgs e)
     {
         Win32WindowManager.PositionAtBottomLeft(this);
@@ -462,6 +479,10 @@ public sealed partial class MiniVolumeWindow : Window
     #region Window Dragging Event Handlers
     private void OnPointerPressed(object sender, PointerRoutedEventArgs e)
     {
+        // Only drag on left button — right-click opens the context menu
+        if (!e.GetCurrentPoint(null).Properties.IsLeftButtonPressed)
+            return;
+
         var grid = sender as Grid;
         if (grid != null)
         {
